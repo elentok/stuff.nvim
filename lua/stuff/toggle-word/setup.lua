@@ -1,5 +1,3 @@
-local util = require("stuff.util")
-
 ---@class ToggleWordOptions
 ---@field key? string|boolean
 ---@field debug? boolean
@@ -8,8 +6,9 @@ local util = require("stuff.util")
 
 ---@param opts ToggleWordOptions
 local function setup(opts)
+  local util = require("stuff.util")
   local config = require("stuff.toggle-word.config")
-  util.mergeConfig(config, opts)
+  util.merge_config(config, opts)
 
   -- add the reverse + uppercase mappings to the hash
   for value, opposite in pairs(config.values) do

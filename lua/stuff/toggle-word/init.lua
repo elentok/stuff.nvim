@@ -1,12 +1,14 @@
-local config = require("stuff.toggle-word.config")
-
 local function log(message)
+  local config = require("stuff.toggle-word.config")
+
   if config.debug then
     print("[stuff.toggle-word] " .. message)
   end
 end
 
 local function toggle_word()
+  local config = require("stuff.toggle-word.config")
+
   local value = vim.fn.expand("<cword>")
   log("Toggle world from [" .. value .. "]")
   local other_value = config.values[value]
