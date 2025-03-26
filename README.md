@@ -2,7 +2,17 @@
 
 Collection of Neovim micro-plugins
 
-- [Toggle Word :left_right_arrow:](#toggle-word)
+## Toggle Word ↔
+
+Toggles boolean values (by pressing `<Leader>tw` in normal mode):
+
+- true &harr; false
+- on &harr; off
+- enabled &harr; disabled
+- left &harr; right
+- top &harr; bottom
+- margin-left &harr; margin-right
+- etc...
 
 ## Installation
 
@@ -42,15 +52,3 @@ Using [Lazy](https://github.com/folke/lazy.nvim):
   }
 }
 ```
-
-## Toggle Word :left_right_arrow:
-
-Toggles boolean values (by pressing `<Leader>tw` in normal mode):
-
-- true &harr; false
-- on &harr; off
-- enabled &harr; disabled
-- left &harr; right
-- top &harr; bottom
-- margin-left &harr; margin-right
-- etc...
