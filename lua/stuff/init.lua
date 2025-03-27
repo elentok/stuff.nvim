@@ -3,6 +3,7 @@
 ---@field open_link? OpenLinkOptions
 ---@field paste_image? boolean
 ---@field git? boolean
+---@field notes? boolean
 
 ---@param opts? StuffOptions
 local function setup(opts)
@@ -24,6 +25,10 @@ local function setup(opts)
 
   if opts.git then
     require("stuff.git.setup")()
+  end
+
+  if opts.notes then
+    require("stuff.notes.setup")()
   end
 end
 
