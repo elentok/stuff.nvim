@@ -4,6 +4,7 @@
 ---@field paste_image? boolean
 ---@field git? boolean
 ---@field notes? boolean
+---@field alternate_file? boolean
 
 ---@param opts? StuffOptions
 local function setup(opts)
@@ -29,6 +30,10 @@ local function setup(opts)
 
   if opts.notes then
     require("stuff.notes.setup")()
+  end
+
+  if opts.alternate_file then
+    require("stuff.alternate-file.setup")()
   end
 end
 
