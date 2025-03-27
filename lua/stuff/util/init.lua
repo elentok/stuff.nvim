@@ -66,11 +66,6 @@ local function relative_to_buffer(path)
   return vim.fn.resolve(vim.fn.expand("%:p:h") .. "/" .. path)
 end
 
----@param msg string
-local function confirm(msg)
-  return vim.fn.confirm(msg, "&Yes\n&No") == 1
-end
-
 return {
   put = put,
   merge_config = merge_config,
@@ -79,5 +74,4 @@ return {
   run_shell = run_shell,
   get_lua_script_path = get_lua_script_path,
   relative_to_buffer = relative_to_buffer,
-  confirm = confirm,
 }

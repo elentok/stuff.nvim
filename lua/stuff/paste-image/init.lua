@@ -76,12 +76,13 @@ end
 
 local function paste_image()
   local util = require("stuff.util")
+  local ui = require("stuff.util.ui")
   vim.ui.input({
     prompt = "Enter image name:",
     default = find_next_image_name(),
   }, function(name)
     local filepath = util.relative_to_buffer(name .. ".png")
-    if util.file_exists(filepath) and not util.confirm("File already exists, overwrite?") then
+    if util.file_exists(filepath) and not ui.confirm("File already exists, overwrite?") then
       return
     end
     if not paste_image_to_file(filepath) then
