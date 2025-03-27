@@ -2,6 +2,7 @@
 ---@field toggle_word? ToggleWordOptions
 ---@field open_link? OpenLinkOptions
 ---@field paste_image? boolean
+---@field git? boolean
 
 ---@param opts? StuffOptions
 local function setup(opts)
@@ -19,6 +20,10 @@ local function setup(opts)
 
   if opts.paste_image then
     require("stuff.paste-image.setup")()
+  end
+
+  if opts.git then
+    require("stuff.git.setup")()
   end
 end
 
