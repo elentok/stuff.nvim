@@ -3,11 +3,11 @@ local git_commits_picker_config = {
   actions = {
     fixup = function(picker, item)
       picker:close()
-      require("stuff.util.git").fixup(item.commit, item.msg)
+      require("stuff.git.util").fixup(item.commit, item.msg)
     end,
     open_commit = function(picker, item)
       picker:close()
-      require("stuff.util.git").tig({ "show", item.commit })
+      require("stuff.git.util").tig({ "show", item.commit })
     end,
     yank_commit = function(_, item)
       vim.fn.setreg("+", item.commit)
@@ -35,7 +35,7 @@ local git_status_picker_config = {
     end,
     git_stage = function(picker, item)
       picker:close()
-      require("stuff.util.git").stage_patch(item.file)
+      require("stuff.git.util").stage_patch(item.file)
     end,
   },
 

@@ -74,32 +74,20 @@ local function tig(args, opts)
   end, 0)
 end
 
----@param commit_hash string
----@param commit_title string?
-local function fixup(commit_hash, commit_title)
-  if commit_hash == nil then
-    return
+---@params key string
+local function get_config(key)
+  local shell = require("stuff.util.shell")
+  local result = shell("git", { args = { "config", "--get", key } })
+
+  if result.code ~= 0 then
+    return nil
   end
 
-  local ui = require("stuff.util.ui")
-  local git = require("stuff.util.git")
-
-  local title = commit_title or commit_hash
-
-  if ui.confirm("Fixup " .. title .. "?") then
-    git.run({ "commit", "--fixup", commit_hash })
-  end
-end
-
----@param file string
-local function stage_patch(file)
-  local git = require("stuff.util.git")
-  git.run({ "add", "-p", file })
+  return result.stdout
 end
 
 return {
   run = run,
   tig = tig,
-  fixup = fixup,
-  stage_patch = stage_patch,
+  get_config = get_config,
 }

@@ -1,4 +1,4 @@
-local function reset_file_changes()
+local function reset_changes()
   local ui = require("stuff.util.ui")
   if ui.confirm("Reset changes in current file?") then
     vim.cmd("silent edit!")
@@ -7,25 +7,25 @@ local function reset_file_changes()
   end
 end
 
-local function add_file_patch()
-  local git = require("stuff.util.git")
+local function add_with_patch()
+  local git = require("stuff.git.util")
   git.run({ "add", "-p", vim.fn.expand("%") })
 end
 
-local function checkout_file_patch()
-  local git = require("stuff.util.git")
+local function checkout_with_patch()
+  local git = require("stuff.git.util")
   git.run({ "checkout", "-p", vim.fn.expand("%") })
 end
 
-local function write_and_add_file()
+local function write_and_stage()
   vim.cmd("write")
   vim.system({ "git", "add", vim.fn.expand("%") }):wait()
   print("Staged file")
 end
 
 return {
-  reset_file_changes = reset_file_changes,
-  add_file_patch = add_file_patch,
-  checkout_file_patch = checkout_file_patch,
-  write_and_add_file = write_and_add_file,
+  reset_changes = reset_changes,
+  add_with_patch = add_with_patch,
+  checkout_with_patch = checkout_with_patch,
+  write_and_stage = write_and_stage,
 }
