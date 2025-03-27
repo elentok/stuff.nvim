@@ -15,14 +15,13 @@ local function setup()
     require("stuff.git.file").reset_changes()
   end, { desc = "Reset git changes" })
 
-  -- vim.keymap.set("n", "<leader>gy", function()
-  --   git_url("yank")
-  -- end, { desc = "Git yank URL" })
-  -- vim.keymap.set("n", "<leader>gY", "<cmd>!git yank -b %<cr>", { desc = "Git yank URL" })
-  -- vim.keymap.set("n", "<leader>go", function()
-  --   git_url("open")
-  -- end, { desc = "Git open URL" })
-  -- vim.keymap.set("n", "<leader>gO", "<cmd>!git open -b %<cr>", { desc = "Git open URL" })
+  vim.keymap.set("n", "<leader>gy", function()
+    require("stuff.git.url").yank()
+  end, { desc = "Git yank URL" })
+
+  vim.keymap.set("n", "<leader>go", function()
+    require("stuff.git.url").open()
+  end, { desc = "Git open URL" })
 end
 
 return setup

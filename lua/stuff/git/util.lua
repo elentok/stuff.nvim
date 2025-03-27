@@ -1,12 +1,14 @@
 ---@module 'snacks.terminal'
 
+---@param filepath? string
 ---@return string|nil
-local function find_git_root()
-  local filepath
-  if vim.bo.filetype == "oil" then
-    filepath = require("oil").get_current_dir()
-  else
-    filepath = vim.fn.expand("%")
+local function find_git_root(filepath)
+  if filepath == nil then
+    if vim.bo.filetype == "oil" then
+      filepath = require("oil").get_current_dir()
+    else
+      filepath = vim.fn.expand("%")
+    end
   end
 
   if filepath == nil then
@@ -14,6 +16,7 @@ local function find_git_root()
   end
 
   local path = vim.uv.fs_realpath(filepath)
+  print("PATH", path)
 
   while path ~= "/" do
     if vim.uv.fs_stat(path .. "/.git") then
@@ -74,20 +77,44 @@ local function tig(args, opts)
   end, 0)
 end
 
----@params key string
-local function get_config(key)
+---@param args string[]
+---@return string|nil
+local function silent_run(args)
   local shell = require("stuff.util.shell")
-  local result = shell("git", { args = { "config", "--get", key } })
+  local result = shell("git", { args = args })
 
   if result.code ~= 0 then
     return nil
   end
 
-  return result.stdout
+  return vim.trim(result.stdout)
+end
+
+---@params key string
+local function get_config(key)
+  return silent_run({ "config", "--get", key })
+end
+
+---@return string|nil
+local function toplevel()
+  return silent_run({ "rev-parse", "--show-toplevel" })
+end
+
+---@return string[]
+local function remotes()
+  local raw = silent_run({ "remote" })
+  if raw == nil then
+    return {}
+  end
+  return vim.split(raw, "\n")
 end
 
 return {
   run = run,
   tig = tig,
   get_config = get_config,
+  identify_workdir = identify_workdir,
+  find_git_root = find_git_root,
+  remotes = remotes,
+  toplevel = toplevel,
 }
