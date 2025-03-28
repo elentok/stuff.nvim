@@ -6,6 +6,7 @@
 ---@field notes? boolean
 ---@field alternate_file? boolean
 ---@field scriptify? ScriptifyOptions
+---@field log_line? LogLineOptions
 
 ---@param opts? StuffOptions
 local function setup(opts)
@@ -39,6 +40,10 @@ local function setup(opts)
 
   if opts.scriptify then
     require("stuff.scriptify.setup")(opts.scriptify)
+  end
+
+  if opts.log_line then
+    require("stuff.log-line.setup")(opts.log_line)
   end
 end
 
