@@ -1,6 +1,7 @@
 ---@class ShellOpts
 ---@field args? string[]
 ---@field fail_silently? boolean
+---@field cwd? string
 
 ---@param full_cmd string[]
 ---@param result vim.SystemCompleted
@@ -26,7 +27,7 @@ end
 local function shell(cmd, opts)
   opts = opts or {}
   local full_cmd = vim.list_extend({ cmd }, opts.args or {})
-  local result = vim.system(full_cmd):wait()
+  local result = vim.system(full_cmd, { cwd = opts.cwd }):wait()
 
   if result.code ~= 0 and not opts.fail_silently then
     notify_error(full_cmd, result)
