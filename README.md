@@ -57,3 +57,7 @@ Use `<leader>jo` to jump between the code and the test file.
 Use `<leader>sf` to add a shebang line and make the file executable.
 
 ![Scriptify screenshot](./images/scriptify.png)
+
+## Log Line 🔍
+
+Use `<c-l>` (in insert mode) to a add log line (`console.log`, `put()`, `echo`)
