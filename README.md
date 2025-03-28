@@ -51,3 +51,9 @@ file and add a markdown link to that image (`![file.png](file.png)`).
 ## Alternate file 📂
 
 Use `<leader>jo` to jump between the code and the test file.
+
+## Scriptify
+
+Use `<leader>sf` to add a shebang line and make the file executable.
+
+![Scriptify screenshot](./images/scriptify.png)

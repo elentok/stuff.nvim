@@ -10,8 +10,12 @@ local function put(...)
 end
 
 ---@param target { [string]: any }
----@param src { [string]: any }
+---@param src? { [string]: any }
 local function merge_config(target, src)
+  if src == nil then
+    return target
+  end
+
   for key, value in pairs(src) do
     if target[key] == nil then
       target[key] = value

@@ -5,6 +5,7 @@
 ---@field git? boolean
 ---@field notes? boolean
 ---@field alternate_file? boolean
+---@field scriptify? ScriptifyOptions
 
 ---@param opts? StuffOptions
 local function setup(opts)
@@ -34,6 +35,10 @@ local function setup(opts)
 
   if opts.alternate_file then
     require("stuff.alternate-file.setup")()
+  end
+
+  if opts.scriptify then
+    require("stuff.scriptify.setup")(opts.scriptify)
   end
 end
 
