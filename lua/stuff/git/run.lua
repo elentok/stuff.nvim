@@ -9,6 +9,11 @@ local function in_terminal(args, opts)
     cwd = find_repo_root(),
   }, opts or {})
 
+  ---@type snacks.win.Config
+  opts.win = vim.tbl_extend("force", {
+    border = "rounded",
+  }, opts.win or {})
+
   if type(args) == "string" then
     args = { args }
   end
