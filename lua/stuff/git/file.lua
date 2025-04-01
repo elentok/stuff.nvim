@@ -8,13 +8,13 @@ local function reset_changes()
 end
 
 local function add_with_patch()
-  local git = require("stuff.git.util")
-  git.run({ "add", "-p", vim.fn.expand("%") })
+  local run = require("stuff.git.run")
+  run.in_terminal({ "add", "-p", vim.fn.expand("%") })
 end
 
 local function checkout_with_patch()
-  local git = require("stuff.git.util")
-  git.run({ "checkout", "-p", vim.fn.expand("%") })
+  local run = require("stuff.git.run")
+  run.in_terminal({ "checkout", "-p", vim.fn.expand("%") })
 end
 
 local function write_and_stage()
