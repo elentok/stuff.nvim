@@ -4,6 +4,7 @@ local function setup()
   end, { desc = "Jump to weekly note" })
 
   vim.keymap.set("i", "<c-x>t", "- [ ]")
+  vim.cmd("abbr tsk - [ ]")
 end
 
 return setup
