@@ -49,7 +49,7 @@ local function get_url(opts)
     end
   end
 
-  local repo = repo_url(opts.remote)
+  local repo = repo_url(remote)
   local filepath = repo_filepath()
 
   local line_suffix = ""
