@@ -43,7 +43,7 @@ local function get_url(opts)
     if vim.tbl_contains(remotes, "upstream") then
       remote = "upstream"
     elseif vim.tbl_contains(remotes, "origin") then
-      remote = "upstream"
+      remote = "origin"
     else
       remote = remotes[1]
     end
