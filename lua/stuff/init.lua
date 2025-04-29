@@ -4,6 +4,7 @@
 ---@field paste_image? boolean
 ---@field git? boolean
 ---@field notes? boolean
+---@field hebrew? boolean
 ---@field alternate_file? boolean
 ---@field scriptify? ScriptifyOptions
 ---@field log_line? LogLineOptions
@@ -44,6 +45,10 @@ local function setup(opts)
 
   if opts.log_line then
     require("stuff.log-line.setup")(opts.log_line)
+  end
+
+  if opts.hebrew then
+    require("stuff.hebrew-line.setup")()
   end
 end
 
