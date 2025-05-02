@@ -53,7 +53,7 @@ local function setup()
   map("i", ";", ";<c-g>u")
 
   -- save file
-  -- map({ "i", "x", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
+  map({ "i", "x", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
 
   -- visual mode
   map({ "n", "v" }, "<leader>vv", "<c-v>", { desc = "Go into block visual mode" })
