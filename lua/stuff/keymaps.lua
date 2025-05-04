@@ -67,6 +67,14 @@ local function setup()
     "<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C-L><CR>",
     { desc = "Redraw / Clear hlsearch / Diff Update" }
   )
+
+  -- LSP
+  map(
+    "n",
+    "<leader>co",
+    function() require("stuff.util.lsp").action("source.organizeImports") end,
+    { desc = "Organize imports" }
+  )
 end
 
 return setup
