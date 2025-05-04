@@ -3,7 +3,7 @@ local git_commits_picker_config = {
   actions = {
     fixup = function(picker, item)
       picker:close()
-      require("stuff.git.util").fixup(item.commit, item.msg)
+      require("stuff.git.actions").fixup(item.commit, item.msg)
     end,
     open_commit = function(picker, item)
       picker:close()
