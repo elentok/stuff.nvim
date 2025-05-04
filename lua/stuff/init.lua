@@ -11,6 +11,7 @@
 ---@field comment? boolean
 ---@field keymaps? boolean
 ---@field put? boolean
+---@field messages? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -26,6 +27,7 @@ local default_options = {
   comment = true,
   keymaps = true,
   put = true,
+  messages = true,
 }
 
 ---@param opts? StuffOptions
@@ -44,6 +46,7 @@ local function setup(opts)
   if opts.comment then require("stuff.comment.setup")() end
   if opts.keymaps then require("stuff.keymaps")() end
   if opts.put then require("stuff.put") end
+  if opts.messages then require("stuff.messages.setup")() end
 end
 
 return { setup = setup }
