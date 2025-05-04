@@ -10,6 +10,7 @@
 ---@field log_line? LogLineOptions
 ---@field comment? boolean
 ---@field keymaps? boolean
+---@field put? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -24,6 +25,7 @@ local default_options = {
   log_line = {},
   comment = true,
   keymaps = true,
+  put = true,
 }
 
 ---@param opts? StuffOptions
@@ -41,6 +43,7 @@ local function setup(opts)
   if opts.hebrew then require("stuff.hebrew.setup")() end
   if opts.comment then require("stuff.comment.setup")() end
   if opts.keymaps then require("stuff.keymaps")() end
+  if opts.put then require("stuff.put") end
 end
 
 return { setup = setup }
