@@ -69,22 +69,4 @@ local function setup()
   )
 end
 
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    map(
-      "n",
-      "<leader>co",
-      function() require("stuff.util.lsp").action("source.organizeImports") end,
-      { desc = "Organize imports" }
-    )
-
-    map(
-      "n",
-      "gd",
-      function() Snacks.picker.lsp_definitions() end,
-      { desc = "Go to definition", buffer = args.buf }
-    )
-  end,
-})
-
 return setup
