@@ -12,6 +12,7 @@
 ---@field keymaps? boolean
 ---@field put? boolean
 ---@field messages? boolean
+---@field folding? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -28,6 +29,7 @@ local default_options = {
   keymaps = true,
   put = true,
   messages = true,
+  folding = true,
 }
 
 ---@param opts? StuffOptions
@@ -47,6 +49,7 @@ local function setup(opts)
   if opts.keymaps then require("stuff.keymaps")() end
   if opts.put then require("stuff.put") end
   if opts.messages then require("stuff.messages.setup")() end
+  if opts.folding then require("stuff.folding")() end
 end
 
 return { setup = setup }
