@@ -1,11 +1,9 @@
 local function setup()
   vim.o.foldmethod = "expr"
 
-  -- In Neovim 0.10 and above a blank string shows the first line of the folded block with syntax highlighting
-  vim.o.foldtext = ""
-
-  -- Default to treesitter folding
-  vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  vim.o.foldlevel = 99 -- Don't fold by default
+  vim.o.foldtext = "" -- Show the first line of the folded block with syntax highlighting
+  vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Default to treesitter folding
 
   -- Prefer LSP folding if client supports it
   vim.api.nvim_create_autocmd("LspAttach", {
