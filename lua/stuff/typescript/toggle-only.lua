@@ -1,8 +1,3 @@
----Get the text of a Tree-sitter node
----@param node TSNode
----@return string
-local function get_node_text(node) return vim.treesitter.get_node_text(node, 0) end
-
 ---Determine if the function name is a test block we care about
 ---@param text string
 ---@return boolean
@@ -44,12 +39,12 @@ local function toggle_only_on_nearest_test()
     if node:type() == "call_expression" then
       local func_node = node:child(0)
       if func_node then
-        local text = get_node_text(func_node)
+        local text = vim.treesitter.get_node_text(func_node, 0)
         if is_test_node(text) then
           local toggled = get_toggled_name(text)
           if toggled then
             replace_node_text(func_node, toggled)
-            print("Toggled to: " .. toggled)
+            vim.notify("Toggled to: " .. toggled, "info")
             return
           end
         end
@@ -58,7 +53,7 @@ local function toggle_only_on_nearest_test()
     node = node:parent()
   end
 
-  vim.notify("No enclosing 'it' or 'describe' found.")
+  vim.notify("No enclosing 'it' or 'describe' found.", "warn")
 end
 
-return { toggle_only_on_nearest_test = toggle_only_on_nearest_test }
+return toggle_only_on_nearest_test
