@@ -14,6 +14,7 @@
 ---@field messages? boolean
 ---@field folding? boolean
 ---@field lsp? boolean
+---@field typescript? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -32,6 +33,7 @@ local default_options = {
   messages = true,
   folding = true,
   lsp = true,
+  typescript = true,
 }
 
 ---@param opts? StuffOptions
@@ -53,6 +55,7 @@ local function setup(opts)
   if opts.messages then require("stuff.messages.setup")() end
   if opts.folding then require("stuff.folding")() end
   if opts.lsp then require("stuff.lsp")() end
+  if opts.typescript then require("stuff.typescript.setup")() end
 end
 
 return { setup = setup }
