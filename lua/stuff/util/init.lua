@@ -12,9 +12,7 @@ end
 ---@param target { [string]: any }
 ---@param src? { [string]: any }
 local function merge_config(target, src)
-  if src == nil then
-    return target
-  end
+  if src == nil then return target end
 
   for key, value in pairs(src) do
     if target[key] == nil then
@@ -35,15 +33,11 @@ end
 
 ---@param filepath string
 ---@return boolean
-local function file_exists(filepath)
-  return vim.fn.filereadable(filepath) ~= 0
-end
+local function file_exists(filepath) return vim.fn.filereadable(filepath) ~= 0 end
 
 ---@param cmd string
 ---@return boolean
-local function has_command(cmd)
-  return vim.fn.exepath(cmd) ~= ""
-end
+local function has_command(cmd) return vim.fn.exepath(cmd) ~= "" end
 
 ---@param cmd string
 ---@return boolean
@@ -66,8 +60,11 @@ local function get_lua_script_path()
 end
 
 ---@param path string
-local function relative_to_buffer(path)
-  return vim.fn.resolve(vim.fn.expand("%:p:h") .. "/" .. path)
+local function relative_to_buffer(path) return vim.fn.resolve(vim.fn.expand("%:p:h") .. "/" .. path) end
+
+---@param keys string
+local function sendkeys(keys)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, false, true), "n", false)
 end
 
 return {
@@ -78,4 +75,5 @@ return {
   run_shell = run_shell,
   get_lua_script_path = get_lua_script_path,
   relative_to_buffer = relative_to_buffer,
+  sendkeys = sendkeys,
 }
