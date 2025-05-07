@@ -15,6 +15,7 @@
 ---@field folding? boolean
 ---@field lsp? boolean
 ---@field typescript? boolean
+---@field quickfix? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -34,6 +35,7 @@ local default_options = {
   folding = true,
   lsp = true,
   typescript = true,
+  quickfix = true,
 }
 
 ---@param opts? StuffOptions
@@ -56,6 +58,7 @@ local function setup(opts)
   if opts.folding then require("stuff.folding")() end
   if opts.lsp then require("stuff.lsp")() end
   if opts.typescript then require("stuff.typescript.setup")() end
+  if opts.quickfix then require("stuff.quickfix")() end
 end
 
 return { setup = setup }
