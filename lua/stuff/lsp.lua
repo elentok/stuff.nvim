@@ -7,7 +7,7 @@ local function setup()
         "n",
         "<leader>co",
         function() require("stuff.util.lsp").action("source.organizeImports") end,
-        { desc = "Organize imports" }
+        { desc = "Organize imports", buffer = args.buf }
       )
 
       map(
@@ -15,6 +15,14 @@ local function setup()
         "gd",
         function() Snacks.picker.lsp_definitions() end,
         { desc = "Go to definition", buffer = args.buf }
+      )
+
+      -- vim.keymap.del("n", "K")
+      map(
+        "n",
+        "K",
+        function() vim.lsp.buf.hover({ border = "rounded" }) end,
+        { desc = "Show LSP hover", buffer = args.buf }
       )
     end,
   })
