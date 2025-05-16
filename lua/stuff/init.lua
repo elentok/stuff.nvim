@@ -16,6 +16,7 @@
 ---@field lsp? boolean
 ---@field typescript? boolean
 ---@field quickfix? boolean
+---@field terminal? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -36,6 +37,7 @@ local default_options = {
   lsp = true,
   typescript = true,
   quickfix = true,
+  terminal = true,
 }
 
 ---@param opts? StuffOptions
@@ -59,6 +61,7 @@ local function setup(opts)
   if opts.lsp then require("stuff.lsp")() end
   if opts.typescript then require("stuff.typescript.setup")() end
   if opts.quickfix then require("stuff.quickfix")() end
+  if opts.terminal then require("stuff.terminal")() end
 end
 
 return { setup = setup }
