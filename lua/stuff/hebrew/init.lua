@@ -29,4 +29,6 @@ local function toggle_hebrew()
   end
 end
 
-vim.keymap.set("n", "<space>h", toggle_hebrew)
+return {
+  toggle_hebrew = toggle_hebrew,
+}
