@@ -2,7 +2,12 @@
 ---@param text string
 ---@return boolean
 local function is_test_node(text)
-  return text == "it" or text == "describe" or text == "it.only" or text == "describe.only"
+  return text == "it"
+    or text == "test"
+    or text == "describe"
+    or text == "it.only"
+    or text == "test.only"
+    or text == "describe.only"
 end
 
 ---Return the toggled form of the test block function name
@@ -52,7 +57,7 @@ local function toggle_only_on_nearest_test()
     node = node:parent()
   end
 
-  vim.notify("No enclosing 'it' or 'describe' found.", "warn")
+  vim.notify("No enclosing 'it', 'test' or 'describe' found.", "warn")
 end
 
 return toggle_only_on_nearest_test
