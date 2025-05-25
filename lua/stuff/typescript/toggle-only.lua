@@ -9,9 +9,9 @@ end
 ---@param text string
 ---@return string|nil
 local function get_toggled_name(text)
-  if text == "it" or text == "describe" then
+  if text == "it" or text == "test" or text == "describe" then
     return text .. ".only"
-  elseif text == "it.only" or text == "describe.only" then
+  elseif text == "it.only" or text == "test.only" or text == "describe.only" then
     return (text:gsub("%.only", ""))
   end
   return nil
@@ -31,8 +31,7 @@ local function replace_node_text(node, new_text)
 end
 
 local function toggle_only_on_nearest_test()
-  local ts_utils = require("nvim-treesitter.ts_utils")
-  local node = ts_utils.get_node_at_cursor()
+  local node = vim.treesitter.get_node()
   if not node then return end
 
   while node do

@@ -37,8 +37,7 @@ end
 
 ---Find the nearest function node upward and toggle 'async'
 local function toggle_async_on_nearest_function()
-  local ts_utils = require("nvim-treesitter.ts_utils")
-  local node = ts_utils.get_node_at_cursor()
+  local node = vim.treesitter.get_node()
   if not node then return end
 
   while node do
