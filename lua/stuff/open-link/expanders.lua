@@ -1,7 +1,5 @@
 local function regex(pattern, replacement)
-  return function(link)
-    return vim.fn.substitute(link, pattern, replacement, "")
-  end
+  return function(link) return vim.fn.substitute(link, pattern, replacement, "") end
 end
 
 local github_regex = vim.regex("\\v^[a-zA-Z0-9_-]+/[.a-zA-Z0-9_-]+$")
@@ -11,6 +9,8 @@ local github_regex = vim.regex("\\v^[a-zA-Z0-9_-]+/[.a-zA-Z0-9_-]+$")
 local function github(link)
   if github_regex:match_str(link) then
     return "https://github.com/" .. link
+  elseif vim.startswith(link, "github.com") then
+    return "https://" .. link
   end
 end
 
@@ -22,9 +22,7 @@ local function jira(base_url, prefixes)
   local re = vim.regex(re_str)
 
   return function(link)
-    if re:match_str(link) then
-      return base_url .. link
-    end
+    if re:match_str(link) then return base_url .. link end
   end
 end
 
@@ -45,9 +43,7 @@ end
 -- Expand ~/path/to/file to file://{HOME}/path/to/file
 local function homedir()
   return function(link)
-    if vim.startswith(link, "~") then
-      return "file://" .. os.getenv("HOME") .. link:sub(2)
-    end
+    if vim.startswith(link, "~") then return "file://" .. os.getenv("HOME") .. link:sub(2) end
   end
 end
 
