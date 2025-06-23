@@ -17,6 +17,7 @@
 ---@field typescript? boolean
 ---@field quickfix? boolean
 ---@field terminal? boolean
+---@field yank? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -38,6 +39,7 @@ local default_options = {
   typescript = true,
   quickfix = true,
   terminal = true,
+  yank = true,
 }
 
 ---@param opts? StuffOptions
@@ -62,6 +64,7 @@ local function setup(opts)
   if opts.typescript then require("stuff.typescript.setup")() end
   if opts.quickfix then require("stuff.quickfix")() end
   if opts.terminal then require("stuff.terminal")() end
+  if opts.yank then require("stuff.yank.setup")() end
 end
 
 return { setup = setup }
