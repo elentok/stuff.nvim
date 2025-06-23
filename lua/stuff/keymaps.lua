@@ -62,6 +62,15 @@ local function setup()
   map("n", "vb", "<c-v>", { desc = "Go into visual block mode" })
 
   map("n", "<leader>yf", ':let @+ = expand("%:.")<cr>', { desc = "Yank current filename" })
+  map("v", "<leader>yf", function()
+    local filename = vim.fn.expand("%:.")
+    local range = require("stuff.util.visual").get_selected_range_as_text()
+    local value = filename .. " " .. range
+    vim.fn.setreg("+", value)
+    vim.notify("Copied " .. value)
+    require("stuff.util.ui").feedkeys("<Esc>")
+  end, { desc = "Yank current filename with line numbers" })
+
   map(
     "n",
     "<leader>ur",
