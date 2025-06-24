@@ -31,6 +31,12 @@ local function setup()
     vim.lsp.stop_client(vim.lsp.get_clients({ bufnr = 0 }), true)
     vim.cmd("edit")
   end, {})
+
+  vim.api.nvim_create_user_command(
+    "LspLog",
+    function() vim.cmd("tabe " .. vim.lsp.get_log_path()) end,
+    {}
+  )
 end
 
 return setup
