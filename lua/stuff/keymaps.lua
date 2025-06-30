@@ -59,7 +59,7 @@ local function setup()
   -- visual mode
   map({ "n", "v" }, "<leader>vv", "<c-v>", { desc = "Go into block visual mode" })
   map("n", "vv", "V", { desc = "Go into visual line mode" })
-  map("n", "vb", "<c-v>", { desc = "Go into visual block mode" })
+  map("n", "vc", "<c-v>", { desc = "Go into visual block mode" })
 
   map(
     "n",
