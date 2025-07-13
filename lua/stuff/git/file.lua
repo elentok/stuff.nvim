@@ -23,7 +23,13 @@ local function write_and_stage()
   print("Staged file")
 end
 
+local function diff()
+  local run = require("stuff.git.run")
+  run.in_terminal({ "diff", vim.fn.expand("%:p") })
+end
+
 return {
+  diff = diff,
   reset_changes = reset_changes,
   add_with_patch = add_with_patch,
   checkout_with_patch = checkout_with_patch,
