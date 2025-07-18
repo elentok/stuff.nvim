@@ -7,6 +7,8 @@ local function setup()
   )
 
   vim.keymap.set("i", "<c-x>t", "- [ ]")
+  vim.keymap.set("i", "<c-x>m", function() require("stuff.notes.insert-link").insert_link() end)
+  vim.keymap.set("n", "<leader>il", function() require("stuff.notes.insert-link").insert_link() end)
   vim.cmd("abbr tsk - [ ]")
   vim.keymap.set(
     "n",
