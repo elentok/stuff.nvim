@@ -60,7 +60,9 @@ local function get_lua_script_path()
 end
 
 ---@param path string
-local function relative_to_buffer(path) return vim.fn.resolve(vim.fn.expand("%:p:h") .. "/" .. path) end
+local function prefix_with_buffer_dir(path)
+  return vim.fn.resolve(vim.fn.expand("%:p:h") .. "/" .. path)
+end
 
 ---@param keys string
 local function sendkeys(keys)
@@ -74,6 +76,6 @@ return {
   has_command = has_command,
   run_shell = run_shell,
   get_lua_script_path = get_lua_script_path,
-  relative_to_buffer = relative_to_buffer,
+  prefix_with_buffer_dir = prefix_with_buffer_dir,
   sendkeys = sendkeys,
 }
