@@ -8,13 +8,9 @@ end
 ---@return string|nil
 local function find_wl_paste()
   local util = require("stuff.util")
-  if util.has_command("wl-paste") then
-    return "wl-paste"
-  end
+  if util.has_command("wl-paste") then return "wl-paste" end
 
-  if util.has_command("wl-clip.paste") then
-    return "wl-clip.paste"
-  end
+  if util.has_command("wl-clip.paste") then return "wl-clip.paste" end
 
   vim.notify(
     "wl-paste is missing, please install the 'wl-clipboard' package (or 'wl-clip' via snap)",
@@ -38,9 +34,7 @@ local function paste_image_to_file_in_linux(filepath)
   local util = require("stuff.util")
   if vim.env.XDG_SESSION_TYPE == "wayland" then
     local wlPaste = find_wl_paste()
-    if wlPaste == nil then
-      return false
-    end
+    if wlPaste == nil then return false end
     return util.run_shell(wlPaste .. " -t image/png > " .. escape(filepath))
   end
 
@@ -67,7 +61,7 @@ local function find_next_image_name()
   local basename = vim.fn.expand("%:t:r")
   local index = 1
   local name = basename .. "01"
-  while util.file_exists(util.relative_to_buffer(name .. ".png")) do
+  while util.file_exists(util.prefix_with_buffer_dir(name .. ".png")) do
     index = index + 1
     name = string.format("%s%02d", basename, index)
   end
@@ -81,13 +75,11 @@ local function paste_image()
     prompt = "Enter image name:",
     default = find_next_image_name(),
   }, function(name)
-    local filepath = util.relative_to_buffer(name .. ".png")
+    local filepath = util.prefix_with_buffer_dir(name .. ".png")
     if util.file_exists(filepath) and not ui.confirm("File already exists, overwrite?") then
       return
     end
-    if not paste_image_to_file(filepath) then
-      return
-    end
+    if not paste_image_to_file(filepath) then return end
     optimize_image(filepath)
     local link = string.format("![%s.png](%s.png)", name, name)
     vim.api.nvim_put({ link }, "c", true, true)
