@@ -15,8 +15,24 @@ local function setup()
     { desc = "Toggle task done" }
   )
 
-  vim.keymap.set("i", "<c-x>m", function() require("stuff.notes.insert-link").insert_link() end)
-  vim.keymap.set("n", "<leader>il", function() require("stuff.notes.insert-link").insert_link() end)
+  vim.keymap.set(
+    "i",
+    "<c-x>m",
+    function() require("stuff.notes.insert-link").insert_link() end,
+    { desc = "Insert markdown link" }
+  )
+  vim.keymap.set(
+    "n",
+    "<leader>il",
+    function() require("stuff.notes.insert-link").insert_link() end,
+    { desc = "Insert markdown link" }
+  )
+  vim.keymap.set(
+    "n",
+    "<leader>ii",
+    function() require("stuff.notes.insert-image").insert_image() end,
+    { desc = "Insert markdown image" }
+  )
 end
 
 return setup
