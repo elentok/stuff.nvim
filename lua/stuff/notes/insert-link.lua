@@ -24,7 +24,10 @@ local function insert_link_to_file(target_filename)
 
   local title = get_markdown_title(target_filename)
 
-  put(string.format("[%s](%s)", title, rel_path))
+  local markdown_link = string.format("[%s](%s)", title, rel_path)
+
+  -- "c" = character wise, true = paste after cursor, true = move cursor to the end
+  vim.api.nvim_put({ markdown_link }, "c", true, true)
 end
 
 local function insert_link()
