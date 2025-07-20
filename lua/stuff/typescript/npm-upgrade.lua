@@ -16,43 +16,50 @@ end
 local function get_package_info(package_name, callback)
   vim.notify(string.format("Checking latest version for %s...", package_name))
 
-  vim.system({ "npm", "outdated", package_name, "--json" }, { text = true }, function(obj)
-    if obj.code ~= 0 and obj.stdout == "" then
-      vim.schedule(function()
-        vim.notify(string.format("Package %s is up to date", package_name))
-        callback(nil)
-      end)
-      return
-    end
+  local packagejson = vim.api.nvim_buf_get_name(0)
+  local dir = vim.fs.dirname(packagejson)
 
-    local result = obj.stdout
-    if result == "" then
-      vim.schedule(function()
-        vim.notify(string.format("No output from npm outdated command"), vim.log.levels.ERROR)
-        callback(nil)
-      end)
-      return
-    end
+  vim.system(
+    { "npm", "outdated", package_name, "--json" },
+    { text = true, cwd = dir },
+    function(obj)
+      if obj.code ~= 0 and obj.stdout == "" then
+        vim.schedule(function()
+          vim.notify(string.format("Package %s is up to date", package_name))
+          callback(nil)
+        end)
+        return
+      end
 
-    local ok, data = pcall(vim.json.decode, result)
-    if not ok then
-      vim.schedule(function()
-        vim.notify(string.format("Failed to parse JSON: %s", result), vim.log.levels.ERROR)
-        callback(nil)
-      end)
-      return
-    end
+      local result = obj.stdout
+      if result == "" then
+        vim.schedule(function()
+          vim.notify(string.format("No output from npm outdated command"), vim.log.levels.ERROR)
+          callback(nil)
+        end)
+        return
+      end
 
-    if not data[package_name] then
-      vim.schedule(function()
-        vim.notify(string.format("Package %s is up to date", package_name))
-        callback(nil)
-      end)
-      return
-    end
+      local ok, data = pcall(vim.json.decode, result)
+      if not ok then
+        vim.schedule(function()
+          vim.notify(string.format("Failed to parse JSON: %s", result), vim.log.levels.ERROR)
+          callback(nil)
+        end)
+        return
+      end
 
-    vim.schedule(function() callback(data[package_name]) end)
-  end)
+      if not data[package_name] then
+        vim.schedule(function()
+          vim.notify(string.format("Package %s is up to date", package_name))
+          callback(nil)
+        end)
+        return
+      end
+
+      vim.schedule(function() callback(data[package_name]) end)
+    end
+  )
 end
 
 local function npm_upgrade()
