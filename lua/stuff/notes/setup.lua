@@ -6,6 +6,13 @@ local function setup()
     { desc = "Jump to weekly note" }
   )
 
+  vim.keymap.set(
+    "n",
+    "<leader>jd",
+    function() require("stuff.notes.daily").jump_to_daily() end,
+    { desc = "Jump to daily note" }
+  )
+
   vim.keymap.set("i", "<c-x>t", "- [ ]")
   vim.cmd("abbr tsk - [ ]")
   vim.keymap.set(
