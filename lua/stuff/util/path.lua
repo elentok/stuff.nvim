@@ -15,4 +15,9 @@ local function relative_path(dir, filename)
   return up .. rel_path
 end
 
-return { relative_path = relative_path }
+local function current_script_dir()
+  local path = debug.getinfo(2, "S").source:sub(2)
+  return vim.fs.dirname(path)
+end
+
+return { relative_path = relative_path, current_script_dir = current_script_dir }

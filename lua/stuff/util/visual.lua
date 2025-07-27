@@ -22,7 +22,15 @@ local function get_visual_range_as_text()
   end
 end
 
+---@return string[]
+local function get_lines()
+  local range = get_visual_range()
+
+  return vim.api.nvim_buf_get_lines(0, range.start_line, range.end_line, false)
+end
+
 return {
   get_visual_range = get_visual_range,
   get_visual_range_as_text = get_visual_range_as_text,
+  get_lines = get_lines,
 }
