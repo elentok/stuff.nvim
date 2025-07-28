@@ -8,9 +8,9 @@ local function yank(text, opts)
 
   if opts == nil or opts.quiet ~= true then
     if #text > 100 then
-      vim.notify("Copied " .. #text .. " characters")
+      vim.notify("  Copied " .. #text .. " characters")
     else
-      vim.notify("Copied " .. text)
+      vim.notify("  Copied " .. vim.trim(text))
     end
   end
 end
@@ -48,8 +48,7 @@ local function yank_markdown()
 
   if result.code ~= 0 then return end
 
-  vim.fn.setreg("+", result.stdout)
-  vim.notify("Yanked " .. #result.stdout .. " characters")
+  yank(result.stdout)
 end
 
 return {
