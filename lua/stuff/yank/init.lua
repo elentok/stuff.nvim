@@ -1,7 +1,18 @@
+---@class YankOpts
+---@field quiet? boolean do not notify about the yank
+
 ---@param text string
-local function yank(text)
+---@param opts? YankOpts
+local function yank(text, opts)
   vim.fn.setreg("+", text)
-  vim.notify("Copied " .. text)
+
+  if opts == nil or opts.quiet ~= true then
+    if #text > 100 then
+      vim.notify("Copied " .. #text .. " characters")
+    else
+      vim.notify("Copied " .. text)
+    end
+  end
 end
 
 local function yank_filename()
