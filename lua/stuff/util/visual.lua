@@ -26,7 +26,7 @@ end
 local function get_lines()
   local range = get_visual_range()
 
-  return vim.api.nvim_buf_get_lines(0, range.start_line, range.end_line, false)
+  return vim.api.nvim_buf_get_lines(0, range.start_line - 1, range.end_line, false)
 end
 
 return {
