@@ -69,6 +69,44 @@ local function sendkeys(keys)
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keys, true, false, true), "n", false)
 end
 
+---@return string
+local function get_surrounding_text()
+  local _, col = unpack(vim.api.nvim_win_get_cursor(0))
+  local line = vim.api.nvim_get_current_line()
+
+  -- Adjust for Lua 1-based index and Lua substring rules
+  local left = col
+  local right = col + 1
+
+  -- Move left to the nearest space or beginning of line
+  while left > 0 and line:sub(left, left) ~= " " do
+    left = left - 1
+  end
+
+  -- Move right to the nearest space or end of line
+  while right <= #line and line:sub(right, right) ~= " " do
+    right = right + 1
+  end
+
+  -- Extract text between bounds (trim if left stopped at a space)
+  local word = line:sub(left + 1, right - 1)
+  return word
+end
+
+---@param re vim.regex
+---@return string|nil
+local function find_closest_match(re)
+  local surrounding = require("stuff.util").get_surrounding_text()
+  local first, last = re:match_str(surrounding)
+  if first then return surrounding:sub(first + 1, last) end
+
+  local line = vim.api.nvim_get_current_line()
+  first, last = re:match_str(line)
+  if first then return line:sub(first + 1, last) end
+
+  return nil
+end
+
 return {
   put = put,
   merge_config = merge_config,
@@ -78,4 +116,6 @@ return {
   get_lua_script_path = get_lua_script_path,
   prefix_with_buffer_dir = prefix_with_buffer_dir,
   sendkeys = sendkeys,
+  get_surrounding_text = get_surrounding_text,
+  find_closest_match = find_closest_match,
 }

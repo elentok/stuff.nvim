@@ -18,6 +18,7 @@
 ---@field quickfix? boolean
 ---@field terminal? boolean
 ---@field yank? boolean
+---@field jira? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -40,6 +41,7 @@ local default_options = {
   quickfix = true,
   terminal = true,
   yank = true,
+  jira = true,
 }
 
 ---@param opts? StuffOptions
@@ -65,6 +67,7 @@ local function setup(opts)
   if opts.quickfix then require("stuff.quickfix")() end
   if opts.terminal then require("stuff.terminal")() end
   if opts.yank then require("stuff.yank.setup")() end
+  if opts.jira then require("stuff.jira.setup")() end
 end
 
 return { setup = setup }
