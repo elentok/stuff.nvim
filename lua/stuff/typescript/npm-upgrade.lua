@@ -12,7 +12,7 @@ end
 ---@field latest string
 
 ---@param package_name string
----@param callback fun(package_info: PackageInfo|nil)
+---@param callback fun(package_info: PackageInfo|PackageInfo[]|nil)
 local function get_package_info(package_name, callback)
   vim.notify(string.format("Checking latest version for %s...", package_name))
 
@@ -23,14 +23,6 @@ local function get_package_info(package_name, callback)
     { "npm", "outdated", package_name, "--json" },
     { text = true, cwd = dir },
     function(obj)
-      if obj.code ~= 0 and obj.stdout == "" then
-        vim.schedule(function()
-          vim.notify(string.format("Package %s is up to date", package_name))
-          callback(nil)
-        end)
-        return
-      end
-
       local result = obj.stdout
       if result == "" then
         vim.schedule(function()
@@ -73,6 +65,8 @@ local function npm_upgrade()
 
   get_package_info(package_name, function(package_info)
     if package_info == nil then return end
+
+    if vim.isarray(package_info) then package_info = package_info[1] end
 
     local current = package_info.current
     local latest = package_info.latest
