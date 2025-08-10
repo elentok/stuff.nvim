@@ -3,7 +3,7 @@
 ---@field open_link? OpenLinkOptions
 ---@field paste_image? boolean
 ---@field git? boolean
----@field notes? boolean
+---@field notes? NotesOptions
 ---@field hebrew? boolean
 ---@field alternate_file? boolean
 ---@field scriptify? ScriptifyOptions
@@ -27,7 +27,7 @@ local default_options = {
   open_link = {},
   paste_image = true,
   git = true,
-  notes = true,
+  notes = {},
   hebrew = true,
   alternate_file = true,
   scriptify = {},
@@ -54,7 +54,7 @@ local function setup(opts)
   if opts.open_link then require("stuff.open-link.setup")(opts.open_link) end
   if opts.paste_image then require("stuff.paste-image.setup")() end
   if opts.git then require("stuff.git.setup")() end
-  if opts.notes then require("stuff.notes.setup")() end
+  if opts.notes then require("stuff.notes.setup")(opts.notes) end
   if opts.alternate_file then require("stuff.alternate-file.setup")() end
   if opts.scriptify then require("stuff.scriptify.setup")(opts.scriptify) end
   if opts.log_line then require("stuff.log-line.setup")(opts.log_line) end

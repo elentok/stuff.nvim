@@ -1,15 +1,22 @@
-local function setup()
+---@class NotesOptions
+---@field root_dir? string
+
+---params opts? NotesOptions
+local function setup(opts)
+  ---@type NotesOptions
+  opts = vim.tbl_extend("force", { root_dir = vim.uv.os_homedir() .. "/notes" }, opts or {})
+
   vim.keymap.set(
     "n",
     "<leader>jw",
-    function() require("stuff.notes.weekly").jump_to_weekly() end,
+    function() require("stuff.notes.weekly").jump_to_weekly(opts.root_dir) end,
     { desc = "Jump to weekly note" }
   )
 
   vim.keymap.set(
     "n",
     "<leader>jd",
-    function() require("stuff.notes.daily").jump_to_daily() end,
+    function() require("stuff.notes.daily").jump_to_daily(opts.root_dir) end,
     { desc = "Jump to daily note" }
   )
 

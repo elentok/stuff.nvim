@@ -13,9 +13,7 @@ end
 ---@param root string | nil
 ---@return string
 local function get_weekly_note_filename(root)
-  if root == nil then
-    root = vim.uv.cwd()
-  end
+  if root == nil then root = vim.uv.cwd() end
   local sunday = get_sunday_of_current_week()
   local week = os.date("%V", sunday) + 1
   local year = os.date("%Y", sunday)
@@ -35,8 +33,9 @@ local function get_weekly_note_filename(root)
   return filename
 end
 
-local function jump_to_weekly()
-  local note = get_weekly_note_filename()
+---@param root_dir string | nil
+local function jump_to_weekly(root_dir)
+  local note = get_weekly_note_filename(root_dir)
   if note == "" then
     vim.notify("No weekly directory", vim.log.levels.ERROR)
     return

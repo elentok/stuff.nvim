@@ -23,8 +23,9 @@ local function get_daily_note_filename(root)
   return filename
 end
 
-local function jump_to_daily()
-  local note = get_daily_note_filename()
+---@param root_dir string | nil
+local function jump_to_daily(root_dir)
+  local note = get_daily_note_filename(root_dir)
   if note == "" then
     vim.notify("No weekly directory", vim.log.levels.ERROR)
     return
