@@ -10,7 +10,7 @@ local function get_daily_note_filename(root)
   local basename = date .. ".md"
   ---@cast basename string
   basename = basename:lower()
-  local dir = string.format("%s/daily/%d/%d", root, year, month)
+  local dir = string.format("%s/daily/%s/%s", root, year, month)
   local filename = string.format("%s/%s", dir, basename)
 
   if vim.fn.filereadable(filename) == 0 then
@@ -31,7 +31,6 @@ local function jump_to_daily(root_dir)
     return
   end
   vim.cmd("edit " .. note)
-  vim.cmd("e")
 end
 
 return {
