@@ -41,7 +41,6 @@ local function jump_to_weekly(root_dir)
     return
   end
   vim.cmd("edit " .. note)
-  vim.cmd("e")
 end
 
 return {
