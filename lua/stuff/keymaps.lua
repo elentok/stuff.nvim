@@ -47,6 +47,9 @@ local function setup()
   map({ "v", "n" }, "C", '"_C')
   map({ "v", "n" }, "<leader>d", '"_d')
 
+  -- Yank current line (without new line)
+  map("n", "yl", "0vg_y")
+
   -- Add undo break-points
   map("i", ",", ",<c-g>u")
   map("i", ".", ".<c-g>u")
