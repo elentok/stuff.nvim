@@ -47,6 +47,13 @@ local function setup(opts)
     function() require("stuff.notes.insert-image").insert_image() end,
     { desc = "Insert markdown image" }
   )
+
+  vim.keymap.set(
+    "n",
+    "<leader>id",
+    function() require("stuff.notes.daily").insert_date_header() end,
+    { desc = "Insert date header" }
+  )
 end
 
 return setup

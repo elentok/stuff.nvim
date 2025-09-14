@@ -33,6 +33,28 @@ local function jump_to_daily(root_dir)
   vim.cmd("edit " .. note)
 end
 
+local function insert_date_header()
+  -- Get current filename without path
+  local filename = vim.fn.expand("%:t")
+
+  -- strip the extension
+  local date_str = filename:gsub("%.md$", "")
+
+  -- parse using strptime
+  local date = vim.fn.strptime("%Y-%m-%d", date_str)
+  if date == 0 then
+    print("Filename is not a valid YYYY-MM-DD.md date")
+    return
+  end
+
+  -- format as "# Sun, Sep 14, 2025"
+  local header = vim.fn.strftime("# %a, %b %d, %Y", date)
+
+  -- insert at the top
+  vim.api.nvim_buf_set_lines(0, 0, 0, false, { header, "" })
+end
+
 return {
   jump_to_daily = jump_to_daily,
+  insert_date_header = insert_date_header,
 }
