@@ -1,3 +1,6 @@
+-- format as "# Sun, Sep 14, 2025"
+local daily_header_format = "# %a, %b %d, %Y"
+
 ---@param root string | nil
 ---@return string
 local function get_daily_note_filename(root)
@@ -15,7 +18,7 @@ local function get_daily_note_filename(root)
 
   if vim.fn.filereadable(filename) == 0 then
     vim.fn.mkdir(dir, "p")
-    local title = "# " .. os.date("%A, %B %d, %Y")
+    local title = os.date(daily_header_format)
 
     vim.fn.writefile({ title }, filename)
   end
@@ -47,8 +50,7 @@ local function insert_date_header()
     return
   end
 
-  -- format as "# Sun, Sep 14, 2025"
-  local header = vim.fn.strftime("# %a, %b %d, %Y", date)
+  local header = vim.fn.strftime(daily_header_format, date)
 
   -- insert at the top
   vim.api.nvim_buf_set_lines(0, 0, 0, false, { header, "" })
