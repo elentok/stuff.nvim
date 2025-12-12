@@ -12,6 +12,13 @@ local function setup()
 
       map(
         "n",
+        "<space>th",
+        function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled()) end,
+        { desc = "Toggle inline hints", buffer = args.buf }
+      )
+
+      map(
+        "n",
         "gd",
         function() Snacks.picker.lsp_definitions() end,
         { desc = "Go to definition", buffer = args.buf }
