@@ -21,6 +21,13 @@ local function setup()
   )
 
   vim.keymap.set(
+    "v",
+    "<leader>yh",
+    function() require("stuff.yank").yank_html() end,
+    { desc = "Yank HTML (from markdown)" }
+  )
+
+  vim.keymap.set(
     "n",
     "<leader>ya",
     function() require("stuff.yank").yank_all_file() end,
