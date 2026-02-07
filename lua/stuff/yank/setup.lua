@@ -19,6 +19,13 @@ local function setup()
     function() require("stuff.yank").yank_markdown() end,
     { desc = "Yank markdown" }
   )
+
+  vim.keymap.set(
+    "n",
+    "<leader>ya",
+    function() require("stuff.yank").yank_all_file() end,
+    { desc = "Yank entire file (all)" }
+  )
 end
 
 return setup

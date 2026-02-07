@@ -28,6 +28,12 @@ local function yank_filename_with_visual_range()
   require("stuff.util.ui").feedkeys("<Esc>")
 end
 
+local function yank_all_file()
+  vim.cmd("normal! myggVGy`y")
+  local line_count = vim.api.nvim_buf_line_count(0)
+  vim.notify("  Copied entire file (" .. line_count .. " lines)")
+end
+
 local function yank_markdown()
   local script_dir = require("stuff.util.path").current_script_dir()
   local dprint_config = vim.fs.joinpath(script_dir, "dprint-markdown.json")
@@ -56,4 +62,5 @@ return {
   yank_filename = yank_filename,
   yank_filename_with_visual_range = yank_filename_with_visual_range,
   yank_markdown = yank_markdown,
+  yank_all_file = yank_all_file,
 }
