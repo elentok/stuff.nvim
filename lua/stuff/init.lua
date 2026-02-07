@@ -20,6 +20,7 @@
 ---@field yank? boolean
 ---@field jira? boolean
 ---@field buffer? boolean
+---@field prompts? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -44,6 +45,7 @@ local default_options = {
   yank = true,
   jira = true,
   buffer = true,
+  prompts = true,
 }
 
 ---@param opts? StuffOptions
@@ -71,6 +73,7 @@ local function setup(opts)
   if opts.yank then require("stuff.yank.setup")() end
   if opts.jira then require("stuff.jira.setup")() end
   if opts.buffer then require("stuff.buffer")() end
+  if opts.prompts then require("stuff.prompts.setup")() end
 end
 
 return { setup = setup }

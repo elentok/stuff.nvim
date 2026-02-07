@@ -2,6 +2,7 @@
 ---@field title string
 ---@field height? number
 ---@field width? number
+---@field filename? string
 
 ---@param opts MyFloatOptions
 local function open_float(opts)
@@ -22,6 +23,8 @@ local function open_float(opts)
     col = (ui.width - opts.width) / 2,
     row = (ui.height - opts.height) / 2,
   })
+
+  if opts.filename then vim.cmd("edit " .. opts.filename) end
 
   return win_handle
 end
