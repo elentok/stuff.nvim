@@ -32,6 +32,7 @@ local config = {
     ["back"] = "fwd",
     ["up"] = "down",
     ["const"] = "let",
+    ["dark"] = "light",
     ["+"] = "-",
   },
 }
