@@ -9,9 +9,7 @@ local function repo_url(remote)
   local git = require("stuff.git.util")
 
   local url = git.get_config("remote." .. remote .. ".url")
-  if url == nil then
-    return
-  end
+  if url == nil then return end
 
   return url
     :gsub("git@([^:]+):", "https://%1/")
@@ -25,17 +23,21 @@ local function repo_filepath(filepath)
   filepath = filepath or vim.fn.expand("%")
   local git = require("stuff.git.util")
   local root = git.toplevel()
-  if root == nil then
-    return nil
-  end
+  if root == nil then return nil end
 
   return vim.fn.substitute(filepath, root, "", "")
+end
+
+local function get_default_branch()
+  local ref = require("stuff.git.run").silently({ "symbolic-ref", "refs/remotes/origin/HEAD" })
+  if ref == nil then return "main" end
+  return string.gsub(ref, "^refs/remotes/origin/", "")
 end
 
 ---@param opts? UrlOpts
 local function get_url(opts)
   opts = opts or {}
-  local branch = opts.branch or "main"
+  local branch = opts.branch or get_default_branch()
 
   local remote = opts.remote
   if remote == nil then
@@ -53,11 +55,9 @@ local function get_url(opts)
   local filepath = repo_filepath()
 
   local line_suffix = ""
-  if opts.include_line ~= false then
-    line_suffix = "#L" .. vim.fn.line(".")
-  end
+  if opts.include_line ~= false then line_suffix = "#L" .. vim.fn.line(".") end
 
-  return repo .. "/blob/" .. branch .. filepath .. line_suffix
+  return repo .. "/blob/" .. branch .. "/" .. filepath .. line_suffix
 end
 
 ---@param opts? UrlOpts
