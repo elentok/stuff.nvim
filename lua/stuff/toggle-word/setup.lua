@@ -11,20 +11,28 @@ local function setup(opts)
   util.merge_config(config, opts)
 
   -- add the reverse + uppercase mappings to the hash
+  local additions = {}
   for value, opposite in pairs(config.values) do
-    config.values[opposite] = value
+    additions[opposite] = value
 
     local upper_value = value:upper()
     local upper_opposite = opposite:upper()
-    config.values[upper_value] = upper_opposite
-    config.values[upper_opposite] = upper_value
+    additions[upper_value] = upper_opposite
+    additions[upper_opposite] = upper_value
+  end
+
+  for k, v in pairs(additions) do
+    config.values[k] = v
   end
 
   local key = config.key
   if type(key) == "string" then
-    vim.keymap.set("n", key, function()
-      require("stuff.toggle-word").toggle_word()
-    end, { desc = "Toggle word" })
+    vim.keymap.set(
+      "n",
+      key,
+      function() require("stuff.toggle-word").toggle_word() end,
+      { desc = "Toggle word" }
+    )
   end
 end
 
