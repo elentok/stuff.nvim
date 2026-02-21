@@ -1,0 +1,42 @@
+name: Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        neovim: [stable, nightly]
+        luaVersion: ["luajit-openresty"]
+
+    runs-on: ${{ matrix.os }}
+    name: "OS: ${{ matrix.os }} - Neovim: ${{ matrix.neovim }}"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.neovim }}
+
+      - name: Install Lua
+        uses: luarocks/gh-actions-lua@v11
+        with:
+          luaVersion: "${{ matrix.luaVersion }}"
+
+      - name: Install LuaRocks
+        uses: luarocks/gh-actions-luarocks@v5
+
+      - name: Build Test Dependencies
+        run: luarocks test stuff.nvim-scm-1.rockspec --prepare
+
+      - name: Test
+        run: luarocks test --test-type busted
