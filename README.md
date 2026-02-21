@@ -6,9 +6,11 @@ Collection of Neovim micro-plugins
 
 See [stuff.lua](https://github.com/elentok/dotfiles/blob/main/core/lazyvim/lua/plugins/stuff.lua)
 
-## Toggle Word ↔
+## Plugins
 
-Toggles boolean values (by pressing `<Leader>tw` in normal mode):
+### Toggle Word ↔️
+
+Toggles boolean values (configurable key):
 
 - true &harr; false
 - on &harr; off
@@ -18,7 +20,7 @@ Toggles boolean values (by pressing `<Leader>tw` in normal mode):
 - margin-left &harr; margin-right
 - etc...
 
-## Open Link 🔗
+### Open Link 🔗
 
 Open links in a browser (or copy to clipboard when in an SSH session).
 
@@ -27,37 +29,152 @@ IDs and Github pull requests from my notes (or code comments) without writing
 the entire URL.
 
 For example, pressing `gx` while standing on MYJIRAPROJ-1234 will open the
-ticket in the browser. See example below.
+ticket in the browser.
 
-## Paste Image 🖼️
+### Paste Image 🖼️
 
-You can use the `:PasteImage` command to paste an image from the clipboard to a
-file and add a markdown link to that image (`![file.png](file.png)`).
+Paste an image from the clipboard and add a markdown link to it.
 
-## Git
+| Mapping       | Description                |
+| ------------- | -------------------------- |
+| `<leader>ip`  | Paste image from clipboard |
+| `:PasteImage` | Same, as a command         |
 
-- `<leader>ga` - runs `git add -p`
-- `<leader>gu` - runs `git checkout -p`
-- `<leader>gw` - writes and stages the current file
-- `<leader>gr` - resets all changes to the current file (with confirmation)
-- `<leader>gy` - yank the current file's public URL
-- `<leader>go` - open the current file's public URL
+### Git 🌿
 
-## Notes 🗒️
+| Mapping      | Description                           |
+| ------------ | ------------------------------------- |
+| `<leader>ga` | Git add file (patch)                  |
+| `<leader>gu` | Git checkout file (patch)             |
+| `<leader>gw` | Write + stage current file            |
+| `<leader>gr` | Reset git changes (with confirmation) |
+| `<leader>gy` | Yank current file's public URL        |
+| `<leader>go` | Open current file's public URL        |
+| `<leader>gd` | Git diff of current file              |
 
-- `<leader>jw` - Jump to the weekly note
-- `<c-x>t` (insert mode) - adds a new task (`- [ ]`)
+### Notes 🗒️
 
-## Alternate file 📂
+| Mapping           | Description                  |
+| ----------------- | ---------------------------- |
+| `<leader>jw`      | Jump to weekly note          |
+| `<leader>jd`      | Jump to daily note           |
+| `<leader>tt`      | Toggle task done             |
+| `<leader>il`      | Insert markdown link         |
+| `<leader>ii`      | Insert markdown image        |
+| `<leader>id`      | Insert date header           |
+| `<c-x>t` (insert) | Insert task checkbox `- [ ]` |
+| `<c-x>m` (insert) | Insert markdown link         |
 
-Use `<leader>jo` to jump between the code and the test file.
+### Related Files 🔀
 
-## Scriptify 📜
+Find and jump to related files (test, code, style) based on filename conventions.
+Supports TypeScript, Go, Python, and more.
 
-Use `<leader>sf` to add a shebang line and make the file executable.
+| Mapping       | Description                   |
+| ------------- | ----------------------------- |
+| `<leader>jj`  | Jump to related file (picker) |
+| `<leader>jtt` | Jump to test file             |
+| `<leader>jtc` | Jump to code file             |
+| `<leader>jts` | Jump to style file            |
 
-![Scriptify screenshot](./images/scriptify.png)
+### Alternate File 📂 (deprecated)
 
-## Log Line 🔍
+| Mapping      | Description                     |
+| ------------ | ------------------------------- |
+| `<leader>jo` | Jump between code and test file |
 
-Use `<c-l>` (in insert mode) to a add log line (`console.log`, `put()`, `echo`)
+### Scriptify 📜
+
+Add a shebang line and make the file executable.
+
+| Mapping      | Description |
+| ------------ | ----------- |
+| `<leader>sf` | Scriptify   |
+
+### Log Line 🔍
+
+Insert a log line (`console.log`, `put()`, `echo`) with filename and line
+context. Key is configurable.
+
+### Comment 💬
+
+| Mapping      | Description                                 |
+| ------------ | ------------------------------------------- |
+| `<leader>yc` | Duplicate line/selection and comment it out |
+
+### Yank 📋
+
+| Mapping               | Description                                 |
+| --------------------- | ------------------------------------------- |
+| `<leader>yf`          | Yank filename (with line numbers in visual) |
+| `<leader>ym` (visual) | Yank as markdown                            |
+| `<leader>yh` (visual) | Yank as HTML (from markdown)                |
+| `<leader>ya`          | Yank entire file                            |
+
+### TypeScript 🟦
+
+| Mapping      | Description                        |
+| ------------ | ---------------------------------- |
+| `<leader>to` | Toggle `.only` on closest test     |
+| `<leader>ta` | Toggle `async` on closest function |
+| `<leader>un` | Upgrade npm package version        |
+
+### AI Prompts 🤖
+
+AI prompt manager for creating and managing prompts with file context.
+
+| Mapping      | Description                                                 |
+| ------------ | ----------------------------------------------------------- |
+| `<leader>pn` | New AI prompt (line context in normal, selection in visual) |
+| `<leader>pp` | Toggle AI prompt window                                     |
+| `<leader>ps` | Select AI prompt (picker)                                   |
+
+### Hebrew
+
+| Mapping    | Description              |
+| ---------- | ------------------------ |
+| `<space>h` | Toggle Hebrew mode (RTL) |
+
+### Jira
+
+| Mapping      | Description        |
+| ------------ | ------------------ |
+| `<leader>jp` | Preview Jira issue |
+| `<leader>oj` | Open Jira issue    |
+
+### LSP
+
+Keymaps attached on `LspAttach`:
+
+| Mapping      | Description         |
+| ------------ | ------------------- |
+| `gd`         | Go to definition    |
+| `K`          | Hover               |
+| `<space>th`  | Toggle inline hints |
+| `<leader>co` | Organize imports    |
+
+### Terminal 🖥️
+
+| Mapping | Description     |
+| ------- | --------------- |
+| `<c-q>` | Toggle terminal |
+
+### Buffer 📄
+
+| Mapping      | Description         |
+| ------------ | ------------------- |
+| `<leader>df` | Delete current file |
+
+### Messages 💭
+
+| Mapping      | Description                        |
+| ------------ | ---------------------------------- |
+| `<leader>wm` | Show messages in a floating window |
+
+### Folding 🪗
+
+Treesitter-based folding with LSP fallback. No keymaps.
+
+### Quickfix 🔧
+
+Quickfix window configuration. Press `q` to close.
