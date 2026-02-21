@@ -7,10 +7,17 @@ local function make_repo(opts)
   vim.fn.mkdir(dir, "p")
 
   vim.system({ "git", "init" }, { cwd = dir }):wait()
-  vim.system({ "git", "remote", "add", "origin", "git@github.com:test/repo.git" }, { cwd = dir }):wait()
+  vim
+    .system({ "git", "remote", "add", "origin", "git@github.com:test/repo.git" }, { cwd = dir })
+    :wait()
 
   if opts.extra_remote then
-    vim.system({ "git", "remote", "add", opts.extra_remote, "git@github.com:test/upstream.git" }, { cwd = dir }):wait()
+    vim
+      .system(
+        { "git", "remote", "add", opts.extra_remote, "git@github.com:test/upstream.git" },
+        { cwd = dir }
+      )
+      :wait()
   end
 
   local file = dir .. "/file.lua"
@@ -40,7 +47,9 @@ describe("git.util", function()
       local repo = make_repo()
       vim.cmd("edit " .. vim.fn.fnameescape(repo.file))
 
+      stub(vim, "notify")
       local result = git_util.get_config("nonexistent.key")
+      vim.notify:revert()
       vim.cmd("bdelete!")
 
       assert.is_nil(result)

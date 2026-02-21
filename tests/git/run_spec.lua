@@ -35,7 +35,9 @@ describe("git.run", function()
       local repo = make_repo()
       vim.cmd("edit " .. vim.fn.fnameescape(repo.file))
 
+      stub(vim, "notify")
       local result = run.silently({ "log", "--oneline", "nonexistent-ref" })
+      vim.notify:revert()
       vim.cmd("bdelete!")
 
       assert.is_nil(result)
