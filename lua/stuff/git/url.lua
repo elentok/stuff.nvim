@@ -81,6 +81,8 @@ end
 
 return {
   normalize_remote_url = normalize_remote_url,
+  repo_url = repo_url,
+  repo_filepath = repo_filepath,
   get_url = get_url,
   open = open,
   yank = yank,
