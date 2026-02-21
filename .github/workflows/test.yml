@@ -35,8 +35,12 @@ jobs:
         with:
           luaVersion: "${{ matrix.luaVersion }}"
 
+      # Pin to 3.12+ to fix "more than 65536 constants" manifest loading error with LuaJIT
+      # https://github.com/luarocks/luarocks/issues/1797
       - name: Install LuaRocks
         uses: luarocks/gh-actions-luarocks@v5
+        with:
+          luaRocksVersion: "3.12.0"
 
       - name: Build Test Dependencies
         run: luarocks test stuff.nvim-scm-1.rockspec --prepare
