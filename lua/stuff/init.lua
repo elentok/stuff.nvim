@@ -21,6 +21,7 @@
 ---@field jira? boolean
 ---@field buffer? boolean
 ---@field prompts? boolean
+---@field related_files? boolean
 
 ---@type StuffOptions
 local default_options = {
@@ -46,6 +47,7 @@ local default_options = {
   jira = true,
   buffer = true,
   prompts = true,
+  related_files = true,
 }
 
 ---@param opts? StuffOptions
@@ -74,6 +76,7 @@ local function setup(opts)
   if opts.jira then require("stuff.jira.setup")() end
   if opts.buffer then require("stuff.buffer")() end
   if opts.prompts then require("stuff.prompts.setup")() end
+  if opts.related_files then require("stuff.related-files.setup")() end
 end
 
 return { setup = setup }
