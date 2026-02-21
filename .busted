@@ -1,0 +1,6 @@
+return {
+  _all = {
+    lua = "./tests/nvim-shim",
+    ROOT = { "./tests/" },
+  },
+}

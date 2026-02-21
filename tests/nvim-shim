@@ -1,0 +1,6 @@
+#!/bin/sh
+export XDG_CONFIG_HOME='./tests/xdg/config/'
+export XDG_STATE_HOME='./tests/xdg/state/'
+export XDG_DATA_HOME='./tests/xdg/data/'
+eval "$(luarocks --lua-version 5.1 path --local)"
+exec nvim --cmd "set rtp+=." --cmd 'set loadplugins' -l "$@"
