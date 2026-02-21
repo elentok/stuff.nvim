@@ -1,6 +1,7 @@
 ---@alias RelatedFileType RelatedFileType
 
 local style_extensions = { css = true, scss = true, sass = true, less = true }
+local index_names = { init = true, index = true, __init__ = true }
 
 --- Extract the core name from a filename, stripping test/style affixes.
 --- Examples:
@@ -8,8 +9,12 @@ local style_extensions = { css = true, scss = true, sass = true, less = true }
 ---   MyComponent.module.css -> MyComponent
 ---   test_utils.py -> utils
 ---   file_test.go -> file
+---   related-files/init.lua -> related-files
+---   Button/index.tsx -> Button
+---   mypackage/__init__.py -> mypackage
+---   related-files_spec.lua -> related-files
 ---@param filepath string
----@return string core_name
+---@return string core_name, boolean is_index
 local function get_core_name(filepath)
   local basename = vim.fs.basename(filepath)
 
@@ -18,9 +23,11 @@ local function get_core_name(filepath)
   local parts = vim.split(basename, ".", { plain = true })
   local stem = parts[1]
 
-  -- Strip known middle parts (.test, .spec, .module)
-  -- These would be in parts[2..n-1] for multi-extension files
-  -- But for simple cases like "file_test.go", stem = "file_test"
+  -- For index/init files, use the parent directory name
+  if index_names[stem] then
+    local parent = vim.fs.basename(vim.fs.dirname(filepath))
+    return parent, true
+  end
 
   -- Strip test_ prefix (Python convention)
   if vim.startswith(stem, "test_") then stem = stem:sub(6) end
@@ -28,11 +35,10 @@ local function get_core_name(filepath)
   -- Strip _test suffix (Go/Python convention)
   if stem:sub(-5) == "_test" then stem = stem:sub(1, -6) end
 
-  -- Strip .test / .spec / .module from middle parts
-  -- These are already separated since we split on "."
-  -- The stem is just parts[1], which won't contain these
+  -- Strip _spec suffix (busted/Ruby convention)
+  if stem:sub(-5) == "_spec" then stem = stem:sub(1, -6) end
 
-  return stem
+  return stem, false
 end
 
 ---@param filepath string
@@ -44,7 +50,7 @@ local function classify_file(filepath)
   local ext = parts[#parts]
 
   -- Check for test patterns
-  if vim.startswith(stem, "test_") or stem:sub(-5) == "_test" then return "test" end
+  if vim.startswith(stem, "test_") or stem:sub(-5) == "_test" or stem:sub(-5) == "_spec" then return "test" end
   for i = 2, #parts - 1 do
     if parts[i] == "test" or parts[i] == "spec" then return "test" end
   end
@@ -69,11 +75,17 @@ local function find_related_files()
   local current_file = vim.api.nvim_buf_get_name(0)
   if current_file == "" then return {} end
 
-  local core_name = get_core_name(current_file)
+  local core_name, is_index = get_core_name(current_file)
   local root = vim.fs.root(0, ".git") or vim.fn.getcwd()
 
   -- Search for files matching the core name
   local candidates = vim.fn.globpath(root, "**/" .. core_name .. "*", false, true)
+
+  -- Also search for index files inside directories matching the core name
+  for _, idx_name in ipairs({ "init", "index", "__init__" }) do
+    local extra = vim.fn.globpath(root, "**/" .. core_name .. "/" .. idx_name .. ".*", false, true)
+    vim.list_extend(candidates, extra)
+  end
 
   local results = {}
   for _, filepath in ipairs(candidates) do

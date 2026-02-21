@@ -30,6 +30,24 @@ describe("related-files", function()
       assert.equals("handler", related.get_core_name("handler_test.go"))
       assert.equals("utils", related.get_core_name("tests/utils_test.py"))
     end)
+
+    it("strips _spec suffix (busted/ruby)", function()
+      assert.equals("related-files", related.get_core_name("tests/related-files_spec.lua"))
+      assert.equals("utils", related.get_core_name("spec/utils_spec.rb"))
+    end)
+
+    it("uses parent dir for init files", function()
+      assert.equals("related-files", related.get_core_name("lua/stuff/related-files/init.lua"))
+    end)
+
+    it("uses parent dir for index files", function()
+      assert.equals("Button", related.get_core_name("src/components/Button/index.tsx"))
+      assert.equals("Button", related.get_core_name("src/components/Button/index.ts"))
+    end)
+
+    it("uses parent dir for __init__ files", function()
+      assert.equals("mypackage", related.get_core_name("lib/mypackage/__init__.py"))
+    end)
   end)
 
   describe("classify_file", function()
@@ -56,6 +74,11 @@ describe("related-files", function()
       assert.equals("style", related.classify_file("MyComponent.scss"))
       assert.equals("style", related.classify_file("theme.sass"))
       assert.equals("style", related.classify_file("vars.less"))
+    end)
+
+    it("classifies _spec suffix as test", function()
+      assert.equals("test", related.classify_file("related-files_spec.lua"))
+      assert.equals("test", related.classify_file("utils_spec.rb"))
     end)
 
     it("classifies other files as code", function()
