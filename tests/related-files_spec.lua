@@ -1,0 +1,67 @@
+local related = require("stuff.related-files")
+
+describe("related-files", function()
+  describe("get_core_name", function()
+    it("returns stem for plain files", function()
+      assert.equals("MyComponent", related.get_core_name("src/MyComponent.tsx"))
+      assert.equals("utils", related.get_core_name("lib/utils.ts"))
+      assert.equals("main", related.get_core_name("main.go"))
+    end)
+
+    it("strips .test middle part", function()
+      assert.equals("MyComponent", related.get_core_name("src/MyComponent.test.tsx"))
+      assert.equals("utils", related.get_core_name("tests/utils.test.ts"))
+    end)
+
+    it("strips .spec middle part", function()
+      assert.equals("MyComponent", related.get_core_name("src/MyComponent.spec.tsx"))
+    end)
+
+    it("strips .module middle part", function()
+      assert.equals("MyComponent", related.get_core_name("styles/MyComponent.module.css"))
+      assert.equals("MyComponent", related.get_core_name("MyComponent.module.scss"))
+    end)
+
+    it("strips test_ prefix (python)", function()
+      assert.equals("utils", related.get_core_name("tests/test_utils.py"))
+    end)
+
+    it("strips _test suffix (go/python)", function()
+      assert.equals("handler", related.get_core_name("handler_test.go"))
+      assert.equals("utils", related.get_core_name("tests/utils_test.py"))
+    end)
+  end)
+
+  describe("classify_file", function()
+    it("classifies .test. files as test", function()
+      assert.equals("test", related.classify_file("MyComponent.test.tsx"))
+      assert.equals("test", related.classify_file("utils.test.ts"))
+    end)
+
+    it("classifies .spec. files as test", function()
+      assert.equals("test", related.classify_file("MyComponent.spec.tsx"))
+    end)
+
+    it("classifies _test suffix as test", function()
+      assert.equals("test", related.classify_file("handler_test.go"))
+      assert.equals("test", related.classify_file("utils_test.py"))
+    end)
+
+    it("classifies test_ prefix as test", function()
+      assert.equals("test", related.classify_file("test_utils.py"))
+    end)
+
+    it("classifies css/scss/sass/less as style", function()
+      assert.equals("style", related.classify_file("MyComponent.module.css"))
+      assert.equals("style", related.classify_file("MyComponent.scss"))
+      assert.equals("style", related.classify_file("theme.sass"))
+      assert.equals("style", related.classify_file("vars.less"))
+    end)
+
+    it("classifies other files as code", function()
+      assert.equals("code", related.classify_file("MyComponent.tsx"))
+      assert.equals("code", related.classify_file("main.go"))
+      assert.equals("code", related.classify_file("utils.py"))
+    end)
+  end)
+end)

@@ -140,4 +140,6 @@ end
 return {
   jump_to_related = jump_to_related,
   find_related_files = find_related_files,
+  get_core_name = get_core_name,
+  classify_file = classify_file,
 }
