@@ -19,6 +19,7 @@
 ---@field related_files? boolean
 ---@field scriptify? ScriptifyOptions
 ---@field terminal? boolean
+---@field testing? boolean
 ---@field toggle_word? ToggleWordOptions
 ---@field typescript? boolean
 ---@field yank? boolean
@@ -45,6 +46,7 @@ local default_options = {
   related_files = true,
   scriptify = {},
   terminal = true,
+  testing = true,
   toggle_word = {},
   typescript = true,
   yank = true,
@@ -74,6 +76,7 @@ local function setup(opts)
   if opts.related_files then require("stuff.related-files.setup")() end
   if opts.scriptify then require("stuff.scriptify.setup")(opts.scriptify) end
   if opts.terminal then require("stuff.terminal")() end
+  if opts.testing then require("stuff.testing.setup")() end
   if opts.toggle_word then require("stuff.toggle-word.setup")(opts.toggle_word) end
   if opts.typescript then require("stuff.typescript.setup")() end
   if opts.yank then require("stuff.yank.setup")() end
