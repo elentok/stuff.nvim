@@ -1,5 +1,7 @@
 # Stuff.nvim 📦
 
+![Tests](https://github.com/elentok/stuff.nvim/actions/workflows/test.yml/badge.svg)
+
 Collection of Neovim micro-plugins
 
 ## Installation
