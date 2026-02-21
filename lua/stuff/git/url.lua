@@ -3,6 +3,15 @@
 ---@field remote? string
 ---@field include_line? boolean
 
+--- Normalize a git remote URL to an HTTPS URL.
+---@param url string
+---@return string
+local function normalize_remote_url(url)
+  return (
+    url:gsub("git@([^:]+):", "https://%1/"):gsub("github.com-[^/]*", "github.com"):gsub(".git$", "")
+  )
+end
+
 ---@param remote? string
 local function repo_url(remote)
   remote = remote or "origin"
@@ -11,10 +20,7 @@ local function repo_url(remote)
   local url = git.get_config("remote." .. remote .. ".url")
   if url == nil then return end
 
-  return url
-    :gsub("git@([^:]+):", "https://%1/")
-    :gsub("github.com-[^/]*", "github.com")
-    :gsub(".git$", "")
+  return normalize_remote_url(url)
 end
 
 ---@param filepath? string
@@ -74,6 +80,7 @@ local function yank(opts)
 end
 
 return {
+  normalize_remote_url = normalize_remote_url,
   get_url = get_url,
   open = open,
   yank = yank,

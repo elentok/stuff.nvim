@@ -59,4 +59,5 @@ end
 return {
   jump_to_daily = jump_to_daily,
   insert_date_header = insert_date_header,
+  get_daily_note_filename = get_daily_note_filename,
 }

@@ -1,0 +1,16 @@
+describe("yank", function()
+  describe("yank to register", function()
+    it("copies text to the + register", function()
+      local yank = require("stuff.yank")
+      yank.yank("hello world", { quiet = true })
+      assert.equals("hello world", vim.fn.getreg("+"))
+    end)
+
+    it("copies multiline text", function()
+      local yank = require("stuff.yank")
+      local text = "line1\nline2\nline3"
+      yank.yank(text, { quiet = true })
+      assert.equals(text, vim.fn.getreg("+"))
+    end)
+  end)
+end)

@@ -45,4 +45,5 @@ end
 
 return {
   jump_to_weekly = jump_to_weekly,
+  get_weekly_note_filename = get_weekly_note_filename,
 }
