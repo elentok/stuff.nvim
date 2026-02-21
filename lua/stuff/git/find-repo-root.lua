@@ -13,7 +13,9 @@ local function find_git_root(filepath)
     return nil
   end
 
-  local path = vim.uv.fs_realpath(filepath)
+  -- Start from the directory, not the file itself, because
+  -- fs_realpath("file.lua/..") fails on Linux (file is not a directory).
+  local path = vim.uv.fs_realpath(vim.fs.dirname(filepath))
   if path == nil then
     return nil
   end
