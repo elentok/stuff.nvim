@@ -79,6 +79,8 @@ Supports TypeScript, Go, Python, and more.
 | `<leader>jtc` | Jump to code file             |
 | `<leader>jts` | Jump to style file            |
 
+See [separate README](/lua/stuff/related-files/README.md) for more details.
+
 ### Alternate File 📂 (deprecated)
 
 | Mapping      | Description                     |

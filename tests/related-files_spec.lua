@@ -50,6 +50,39 @@ describe("related-files", function()
     end)
   end)
 
+  describe("get_qualifier", function()
+    local root = "/project"
+
+    it("returns directory name for non-structural parent", function()
+      assert.equals("git", related.get_qualifier("/project/lua/stuff/git/util.lua", "util", root))
+      assert.equals("git", related.get_qualifier("/project/tests/git/util_spec.lua", "util", root))
+    end)
+
+    it("returns empty string when only structural dirs remain", function()
+      assert.equals("", related.get_qualifier("/project/lua/stuff/util/init.lua", "util", root))
+      assert.equals("", related.get_qualifier("/project/tests/util_spec.lua", "util", root))
+    end)
+
+    it("skips directory matching core_name for index files", function()
+      assert.equals("", related.get_qualifier("/project/lua/stuff/related-files/init.lua", "related-files", root))
+      assert.equals("", related.get_qualifier("/project/tests/related-files_spec.lua", "related-files", root))
+    end)
+
+    it("returns component-style qualifier for JS projects", function()
+      assert.equals("components", related.get_qualifier("/project/src/components/Button/index.tsx", "Button", root))
+      assert.equals("components", related.get_qualifier("/project/src/components/Button.test.tsx", "Button", root))
+    end)
+
+    it("skips lua package name dirs (child of lua/)", function()
+      assert.equals("", related.get_qualifier("/project/lua/myplugin/init.lua", "myplugin", root))
+    end)
+
+    it("returns qualifier when semantic dir exists above structural", function()
+      assert.equals("api", related.get_qualifier("/project/src/api/client.ts", "client", root))
+      assert.equals("api", related.get_qualifier("/project/tests/api/client_test.ts", "client", root))
+    end)
+  end)
+
   describe("classify_file", function()
     it("classifies .test. files as test", function()
       assert.equals("test", related.classify_file("MyComponent.test.tsx"))

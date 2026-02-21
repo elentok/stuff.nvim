@@ -2,6 +2,16 @@
 
 local style_extensions = { css = true, scss = true, sass = true, less = true }
 local index_names = { init = true, index = true, __init__ = true }
+local structural_dirs = {
+  src = true,
+  lib = true,
+  lua = true,
+  tests = true,
+  test = true,
+  spec = true,
+  __tests__ = true,
+  app = true,
+}
 
 --- Extract the core name from a filename, stripping test/style affixes.
 --- Examples:
@@ -14,7 +24,7 @@ local index_names = { init = true, index = true, __init__ = true }
 ---   mypackage/__init__.py -> mypackage
 ---   related-files_spec.lua -> related-files
 ---@param filepath string
----@return string core_name, boolean is_index
+---@return string core_name
 local function get_core_name(filepath)
   local basename = vim.fs.basename(filepath)
 
@@ -26,7 +36,7 @@ local function get_core_name(filepath)
   -- For index/init files, use the parent directory name
   if index_names[stem] then
     local parent = vim.fs.basename(vim.fs.dirname(filepath))
-    return parent, true
+    return parent
   end
 
   -- Strip test_ prefix (Python convention)
@@ -38,7 +48,32 @@ local function get_core_name(filepath)
   -- Strip _spec suffix (busted/Ruby convention)
   if stem:sub(-5) == "_spec" then stem = stem:sub(1, -6) end
 
-  return stem, false
+  return stem
+end
+
+--- Get a qualifying directory segment to disambiguate files with the same core name.
+--- Walks upward from the file's parent, skipping dirs that match core_name and structural dirs.
+---@param filepath string
+---@param core_name string
+---@param root string
+---@return string qualifier
+local function get_qualifier(filepath, core_name, root)
+  local dir = vim.fs.dirname(filepath)
+  while dir and #dir >= #root do
+    local name = vim.fs.basename(dir)
+    if dir == root then break end
+    if name == core_name then
+      -- skip directory matching core name (e.g. util/ for util/init.lua)
+    elseif structural_dirs[name] then
+      -- skip known structural dirs
+    elseif vim.fs.basename(vim.fs.dirname(dir)) == "lua" then
+      -- skip lua package name dirs (e.g. lua/stuff/ -> stuff is structural)
+    else
+      return name
+    end
+    dir = vim.fs.dirname(dir)
+  end
+  return ""
 end
 
 ---@param filepath string
@@ -50,7 +85,9 @@ local function classify_file(filepath)
   local ext = parts[#parts]
 
   -- Check for test patterns
-  if vim.startswith(stem, "test_") or stem:sub(-5) == "_test" or stem:sub(-5) == "_spec" then return "test" end
+  if vim.startswith(stem, "test_") or stem:sub(-5) == "_test" or stem:sub(-5) == "_spec" then
+    return "test"
+  end
   for i = 2, #parts - 1 do
     if parts[i] == "test" or parts[i] == "spec" then return "test" end
   end
@@ -75,8 +112,9 @@ local function find_related_files()
   local current_file = vim.api.nvim_buf_get_name(0)
   if current_file == "" then return {} end
 
-  local core_name, is_index = get_core_name(current_file)
+  local core_name = get_core_name(current_file)
   local root = vim.fs.root(0, ".git") or vim.fn.getcwd()
+  local qualifier = get_qualifier(current_file, core_name, root)
 
   -- Search for files matching the core name
   local candidates = vim.fn.globpath(root, "**/" .. core_name .. "*", false, true)
@@ -92,7 +130,7 @@ local function find_related_files()
     -- Skip current file and directories
     if filepath ~= current_file and vim.fn.isdirectory(filepath) == 0 then
       local candidate_core = get_core_name(filepath)
-      if candidate_core == core_name then
+      if candidate_core == core_name and get_qualifier(filepath, core_name, root) == qualifier then
         table.insert(results, {
           path = filepath,
           type = classify_file(filepath),
@@ -153,5 +191,6 @@ return {
   jump_to_related = jump_to_related,
   find_related_files = find_related_files,
   get_core_name = get_core_name,
+  get_qualifier = get_qualifier,
   classify_file = classify_file,
 }
