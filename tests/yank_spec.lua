@@ -1,4 +1,22 @@
 describe("yank", function()
+  -- Provide a fake clipboard when no system provider is available (e.g. Linux CI)
+  setup(function()
+    if vim.fn.has("clipboard") == 0 then
+      local contents = {}
+      vim.g.clipboard = {
+        name = "fake",
+        copy = {
+          ["+"] = function(lines) contents["+"] = lines end,
+          ["*"] = function(lines) contents["*"] = lines end,
+        },
+        paste = {
+          ["+"] = function() return contents["+"] or {} end,
+          ["*"] = function() return contents["*"] or {} end,
+        },
+      }
+    end
+  end)
+
   describe("yank to register", function()
     it("copies text to the + register", function()
       local yank = require("stuff.yank")
