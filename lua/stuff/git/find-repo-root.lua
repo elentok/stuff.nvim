@@ -18,7 +18,7 @@ local function find_git_root(filepath)
     return nil
   end
 
-  while path ~= "/" do
+  while path and path ~= "/" do
     if vim.uv.fs_stat(path .. "/.git") then
       return path
     end
