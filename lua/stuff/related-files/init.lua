@@ -103,6 +103,15 @@ end
 ---@field type RelatedFileType
 ---@field filename string
 
+--- Run fd and return a list of absolute file paths.
+---@param args string[]
+---@return string[]
+local function run_fd(args)
+  local result = vim.fn.systemlist(args)
+  if vim.v.shell_error ~= 0 then return {} end
+  return result
+end
+
 --- Find all files related to the current buffer.
 ---@return RelatedFile[]
 local function find_related_files()
@@ -116,12 +125,12 @@ local function find_related_files()
   local root = vim.fs.root(0, ".git") or vim.fn.getcwd()
   local qualifier = get_qualifier(current_file, core_name, root)
 
-  -- Search for files matching the core name
-  local candidates = vim.fn.globpath(root, "**/" .. core_name .. "*", false, true)
+  -- Search for files matching the core name using fd (faster, respects .gitignore)
+  local candidates = run_fd({ "fd", "--type", "f", "--absolute-path", "-g", core_name .. "*", root })
 
   -- Also search for index files inside directories matching the core name
   for _, idx_name in ipairs({ "init", "index", "__init__" }) do
-    local extra = vim.fn.globpath(root, "**/" .. core_name .. "/" .. idx_name .. ".*", false, true)
+    local extra = run_fd({ "fd", "--type", "f", "--absolute-path", "--full-path", "/" .. core_name .. "/" .. idx_name .. "\\.", root })
     vim.list_extend(candidates, extra)
   end
 
