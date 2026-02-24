@@ -42,6 +42,14 @@ jobs:
         with:
           luaRocksVersion: "3.12.0"
 
+      - name: Install fd (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y fd-find && sudo ln -sf $(which fdfind) /usr/local/bin/fd
+
+      - name: Install fd (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install fd
+
       - name: Build Test Dependencies
         run: luarocks test stuff.nvim-scm-1.rockspec --prepare
 

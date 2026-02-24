@@ -112,6 +112,52 @@ local function run_fd(args)
   return result
 end
 
+--- Find candidate file paths matching core_name under root using fd.
+---@param core_name string
+---@param root string
+---@return string[]
+local function find_candidates(core_name, root)
+  local candidates =
+    run_fd({ "fd", "--type", "f", "--absolute-path", "-g", core_name .. "*", root })
+  for _, idx_name in ipairs({ "init", "index", "__init__" }) do
+    local extra = run_fd({
+      "fd",
+      "--type",
+      "f",
+      "--absolute-path",
+      "--full-path",
+      "/" .. core_name .. "/" .. idx_name .. "\\.",
+      root,
+    })
+    vim.list_extend(candidates, extra)
+  end
+  return candidates
+end
+
+--- Filter candidates to those matching core_name and qualifier, excluding current_file.
+---@param candidates string[]
+---@param current_file string
+---@param core_name string
+---@param qualifier string
+---@param root string
+---@return RelatedFile[]
+local function filter_candidates(candidates, current_file, core_name, qualifier, root)
+  local results = {}
+  for _, filepath in ipairs(candidates) do
+    if filepath ~= current_file and vim.fn.isdirectory(filepath) == 0 then
+      local candidate_core = get_core_name(filepath)
+      if candidate_core == core_name and get_qualifier(filepath, core_name, root) == qualifier then
+        table.insert(results, {
+          path = filepath,
+          type = classify_file(filepath),
+          filename = vim.fs.basename(filepath),
+        })
+      end
+    end
+  end
+  return results
+end
+
 --- Find all files related to the current buffer.
 ---@return RelatedFile[]
 local function find_related_files()
@@ -125,29 +171,8 @@ local function find_related_files()
   local root = vim.fs.root(0, ".git") or vim.fn.getcwd()
   local qualifier = get_qualifier(current_file, core_name, root)
 
-  -- Search for files matching the core name using fd (faster, respects .gitignore)
-  local candidates = run_fd({ "fd", "--type", "f", "--absolute-path", "-g", core_name .. "*", root })
-
-  -- Also search for index files inside directories matching the core name
-  for _, idx_name in ipairs({ "init", "index", "__init__" }) do
-    local extra = run_fd({ "fd", "--type", "f", "--absolute-path", "--full-path", "/" .. core_name .. "/" .. idx_name .. "\\.", root })
-    vim.list_extend(candidates, extra)
-  end
-
-  local results = {}
-  for _, filepath in ipairs(candidates) do
-    -- Skip current file and directories
-    if filepath ~= current_file and vim.fn.isdirectory(filepath) == 0 then
-      local candidate_core = get_core_name(filepath)
-      if candidate_core == core_name and get_qualifier(filepath, core_name, root) == qualifier then
-        table.insert(results, {
-          path = filepath,
-          type = classify_file(filepath),
-          filename = vim.fs.basename(filepath),
-        })
-      end
-    end
-  end
+  local candidates = find_candidates(core_name, root)
+  local results = filter_candidates(candidates, current_file, core_name, qualifier, root)
 
   -- Cache on buffer
   vim.b.related_files = results
