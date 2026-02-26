@@ -23,6 +23,7 @@
 ---@field toggle_word? ToggleWordOptions
 ---@field typescript? boolean
 ---@field yank? boolean
+---@field filetypes? { [string]: string }
 
 ---@type StuffOptions
 local default_options = {
@@ -50,6 +51,7 @@ local default_options = {
   toggle_word = {},
   typescript = true,
   yank = true,
+  filetypes = {},
 }
 
 ---@param opts? StuffOptions
@@ -80,6 +82,7 @@ local function setup(opts)
   if opts.toggle_word then require("stuff.toggle-word.setup")(opts.toggle_word) end
   if opts.typescript then require("stuff.typescript.setup")() end
   if opts.yank then require("stuff.yank.setup")() end
+  if opts.filetypes then require("stuff.filetypes")() end
 end
 
 return { setup = setup }
