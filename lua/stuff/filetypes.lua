@@ -1,6 +1,7 @@
 local pattern_to_filetype = {
   ["*docker-compose.yml"] = "yaml.docker-compose",
   ["*.mdc"] = "markdown",
+  ["Jenkinsfile*"] = "groovy",
 }
 
 ---@param extra_mappings { [string]: string } | nil
