@@ -95,4 +95,49 @@ describe("git.util", function()
       repo.cleanup()
     end)
   end)
+
+  describe("find_repo_root", function()
+    it("returns the repo root for a regular git repo", function()
+      local repo = make_repo()
+      vim.cmd("edit " .. vim.fn.fnameescape(repo.file))
+
+      local result = git_util.find_repo_root()
+      vim.cmd("bdelete!")
+
+      assert.equals(vim.uv.fs_realpath(repo.dir), vim.uv.fs_realpath(result))
+      repo.cleanup()
+    end)
+
+    it("returns the worktree root (not the bare repo) for a git worktree", function()
+      local repo = make_repo()
+      local wt_dir = vim.fn.tempname()
+      vim.system({ "git", "worktree", "add", wt_dir, "-b", "test-worktree" }, { cwd = repo.dir }):wait()
+
+      local wt_file = wt_dir .. "/file.lua"
+      vim.cmd("edit " .. vim.fn.fnameescape(wt_file))
+
+      local result = git_util.find_repo_root()
+      vim.cmd("bdelete!")
+
+      assert.equals(vim.uv.fs_realpath(wt_dir), vim.uv.fs_realpath(result))
+      assert.not_equals(vim.uv.fs_realpath(repo.dir), vim.uv.fs_realpath(result))
+
+      vim.fn.delete(wt_dir, "rf")
+      repo.cleanup()
+    end)
+
+    it("returns nil when not in a git repo", function()
+      local dir = vim.fn.tempname()
+      vim.fn.mkdir(dir, "p")
+      local file = dir .. "/file.lua"
+      vim.fn.writefile({ "return 1" }, file)
+      vim.cmd("edit " .. vim.fn.fnameescape(file))
+
+      local result = git_util.find_repo_root()
+      vim.cmd("bdelete!")
+
+      assert.is_nil(result)
+      vim.fn.delete(dir, "rf")
+    end)
+  end)
 end)

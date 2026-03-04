@@ -47,6 +47,13 @@ local function setup()
     function() require("stuff.git.file").diff() end,
     { desc = "Git diff of current file" }
   )
+
+  vim.keymap.set(
+    "n",
+    "<leader>cd",
+    function() require("stuff.git.actions").cd_repo_root() end,
+    { desc = "Chdir to repo root" }
+  )
 end
 
 return setup
