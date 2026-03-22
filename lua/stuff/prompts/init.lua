@@ -84,11 +84,20 @@ local function find_agent_panes()
   return panes
 end
 
+---@param prompt string
+---@return string
+local function get_sendable_prompt(prompt)
+  local lines = vim.split(prompt, "\n", { plain = true })
+  if lines[1] and lines[1]:match("^#%s+") then table.remove(lines, 1) end
+
+  return vim.trim(table.concat(lines, "\n"))
+end
+
 ---@param pane StuffPromptTmuxPane
 ---@return boolean
 local function send_prompt_to_pane(pane)
   local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
-  local prompt = table.concat(lines, "\n")
+  local prompt = get_sendable_prompt(table.concat(lines, "\n"))
   if vim.trim(prompt) == "" then
     vim.notify("Prompt is empty", vim.log.levels.WARN)
     return false
@@ -159,8 +168,22 @@ end
 ---@param description string
 ---@param context string
 local function get_initial_content(description, context)
-  local content = { "# " .. description, "", context }
+  local content = { "# " .. description }
+  if context ~= "" then
+    table.insert(content, "")
+    table.insert(content, context)
+  end
+
   return table.concat(content, "\n")
+end
+
+---@param suffix string
+---@return string
+local function get_file_context(suffix)
+  local filename = vim.fn.expand("%:.")
+  if filename == "" then return "" end
+
+  return string.format("@%s %s", filename, suffix)
 end
 
 local function close_window()
@@ -248,15 +271,13 @@ end
 
 local function new_for_selection()
   local range = require("stuff.util.visual").get_visual_range_as_text()
-  local filename = vim.fn.expand("%:.")
-  local context = string.format("@%s %s", filename, range)
+  local context = get_file_context(range)
   return new(context)
 end
 
 local function new_for_current_line()
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
-  local filename = vim.fn.expand("%:.")
-  local context = string.format("@%s L%d", filename, lnum)
+  local context = get_file_context(string.format("L%d", lnum))
   return new(context)
 end
 
