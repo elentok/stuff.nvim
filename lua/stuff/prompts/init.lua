@@ -3,6 +3,150 @@ local current_prompt_buf = nil
 local current_prompt_file_path = nil
 
 local PROMPTS_DIR = vim.fs.joinpath(vim.fn.expand("~"), ".prompts")
+local AGENT_NAMES = { "claude", "codex", "opencode", "cursor-agent" }
+local tmux = require("stuff.util.tmux")
+
+---@param value string|nil
+---@return string|nil
+local function detect_agent_name(value)
+  if value == nil or value == "" then return nil end
+
+  local lower = value:lower()
+  for _, agent in ipairs(AGENT_NAMES) do
+    if lower:find(agent, 1, true) then return agent end
+  end
+
+  return nil
+end
+---@class StuffPromptTmuxPane
+---@field pane_id string
+---@field pane_title string
+---@field pane_current_command string
+---@field pane_start_command string
+---@field pane_current_path string
+---@field pane_active boolean
+---@field agent string
+---@field preview_text string
+---@field text string
+
+---@return StuffPromptTmuxPane[]
+local function find_agent_panes()
+  local session = tmux.get_current_tmux_session()
+  if session == nil then return {} end
+
+  local result = tmux.run({
+    "list-panes",
+    "-t",
+    session,
+    "-F",
+    "#{pane_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}",
+  }, { fail_silently = true })
+
+  if result.code ~= 0 or result.stdout == nil or result.stdout == "" then return {} end
+
+  local panes = {} ---@type StuffPromptTmuxPane[]
+  for _, line in ipairs(vim.split(result.stdout, "\n", { trimempty = true })) do
+    local fields = vim.split(line, "\t", { plain = true })
+    local pane_id = fields[1]
+    local pane_title = fields[2] or ""
+    local pane_current_command = fields[3] or ""
+    local pane_start_command = fields[4] or ""
+    local pane_current_path = fields[5] or ""
+    local pane_active = (fields[6] or "") == "1"
+    local agent = detect_agent_name(pane_current_command)
+      or detect_agent_name(pane_start_command)
+      or detect_agent_name(pane_title)
+
+    if pane_id ~= nil and pane_id ~= "" and agent ~= nil then
+      local preview_text = tmux.get_pane_preview(pane_id)
+      panes[#panes + 1] = {
+        pane_id = pane_id,
+        pane_title = pane_title,
+        pane_current_command = pane_current_command,
+        pane_start_command = pane_start_command,
+        pane_current_path = pane_current_path,
+        pane_active = pane_active,
+        agent = agent,
+        preview_text = preview_text,
+        text = table.concat({
+          agent,
+          pane_id,
+          pane_title,
+          pane_current_command,
+          pane_start_command,
+          pane_current_path,
+          preview_text,
+        }, " "),
+      }
+    end
+  end
+
+  return panes
+end
+
+---@param pane StuffPromptTmuxPane
+---@return boolean
+local function send_prompt_to_pane(pane)
+  local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
+  local prompt = table.concat(lines, "\n")
+  if vim.trim(prompt) == "" then
+    vim.notify("Prompt is empty", vim.log.levels.WARN)
+    return false
+  end
+
+  if not tmux.send_to_pane(pane.pane_id, prompt) then return false end
+
+  vim.notify(string.format("Pasted prompt to %s in pane %s", pane.agent, pane.pane_id))
+  return true
+end
+
+local function send_to_tmux()
+  if not tmux.is_inside_tmux() then
+    vim.notify("Not inside a tmux session", vim.log.levels.WARN)
+    return
+  end
+
+  local panes = find_agent_panes()
+  if #panes == 0 then
+    vim.notify("No AI agent panes found in the current tmux session", vim.log.levels.WARN)
+    return
+  end
+
+  if #panes == 1 then
+    send_prompt_to_pane(panes[1])
+    return
+  end
+
+  Snacks.picker({
+    title = "Send Prompt To Tmux Pane",
+    items = vim.tbl_map(function(pane)
+      return vim.tbl_extend("force", pane, {
+        preview = {
+          text = pane.preview_text,
+          ft = "sh",
+        },
+      })
+    end, panes),
+    preview = "preview",
+    format = function(item, _picker)
+      local ret = {}
+      local label_hl = item.pane_active and "DiagnosticOk" or "DiagnosticHint"
+      local title = item.pane_title ~= "" and item.pane_title or item.pane_current_command
+      local path = item.pane_current_path ~= "" and item.pane_current_path or "[no path]"
+
+      table.insert(ret, { " " .. item.agent .. " ", "DiagnosticInfo" })
+      table.insert(ret, { " " .. item.pane_id .. " ", label_hl })
+      table.insert(ret, { " " .. title })
+      table.insert(ret, { "  " .. path, "Comment" })
+
+      return ret
+    end,
+    confirm = function(picker, item)
+      picker:close()
+      send_prompt_to_pane(item)
+    end,
+  })
+end
 
 local function get_prompt_file_path(description)
   local date = os.date("%Y-%m-%d")
@@ -56,6 +200,10 @@ local function open_prompt(file_path)
 
   vim.keymap.set("n", "q", ":close<cr>", {
     buffer = current_prompt_buf,
+  })
+  vim.keymap.set("n", "<leader>r", send_to_tmux, {
+    buffer = current_prompt_buf,
+    desc = "Send prompt to tmux AI agent",
   })
 
   return win
@@ -151,5 +299,6 @@ return {
   new_for_current_line = new_for_current_line,
   new_for_selection = new_for_selection,
   select = select,
+  send_to_tmux = send_to_tmux,
   toggle = toggle,
 }
