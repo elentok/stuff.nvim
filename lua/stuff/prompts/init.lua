@@ -18,70 +18,42 @@ local function detect_agent_name(value)
 
   return nil
 end
----@class StuffPromptTmuxPane
----@field pane_id string
----@field pane_title string
----@field pane_current_command string
----@field pane_start_command string
----@field pane_current_path string
----@field pane_active boolean
+---@class StuffPromptAgentPane: TmuxPane
 ---@field agent string
 ---@field preview_text string
 ---@field text string
 
----@return StuffPromptTmuxPane[]
+---@return StuffPromptAgentPane[]
 local function find_agent_panes()
   local session = tmux.get_current_tmux_session()
   if session == nil then return {} end
 
-  local result = tmux.run({
-    "list-panes",
-    "-t",
-    session,
-    "-F",
-    "#{pane_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}",
-  }, { fail_silently = true })
+  local panes = tmux.get_session_panes(session)
+  local agent_panes = {} ---@type StuffPromptAgentPane[]
+  for _, pane in ipairs(panes) do
+    local agent = detect_agent_name(pane.pane_current_command)
+      or detect_agent_name(pane.pane_start_command)
+      or detect_agent_name(pane.pane_title)
 
-  if result.code ~= 0 or result.stdout == nil or result.stdout == "" then return {} end
-
-  local panes = {} ---@type StuffPromptTmuxPane[]
-  for _, line in ipairs(vim.split(result.stdout, "\n", { trimempty = true })) do
-    local fields = vim.split(line, "\t", { plain = true })
-    local pane_id = fields[1]
-    local pane_title = fields[2] or ""
-    local pane_current_command = fields[3] or ""
-    local pane_start_command = fields[4] or ""
-    local pane_current_path = fields[5] or ""
-    local pane_active = (fields[6] or "") == "1"
-    local agent = detect_agent_name(pane_current_command)
-      or detect_agent_name(pane_start_command)
-      or detect_agent_name(pane_title)
-
-    if pane_id ~= nil and pane_id ~= "" and agent ~= nil then
-      local preview_text = tmux.get_pane_preview(pane_id)
-      panes[#panes + 1] = {
-        pane_id = pane_id,
-        pane_title = pane_title,
-        pane_current_command = pane_current_command,
-        pane_start_command = pane_start_command,
-        pane_current_path = pane_current_path,
-        pane_active = pane_active,
+    if agent ~= nil then
+      local preview_text = tmux.get_pane_preview(pane.pane_id)
+      agent_panes[#agent_panes + 1] = vim.tbl_extend("force", pane, {
         agent = agent,
         preview_text = preview_text,
         text = table.concat({
           agent,
-          pane_id,
-          pane_title,
-          pane_current_command,
-          pane_start_command,
-          pane_current_path,
+          pane.pane_id,
+          pane.pane_title,
+          pane.pane_current_command,
+          pane.pane_start_command,
+          pane.pane_current_path,
           preview_text,
         }, " "),
-      }
+      })
     end
   end
 
-  return panes
+  return agent_panes
 end
 
 ---@param prompt string
@@ -102,7 +74,7 @@ local function get_prompt_with_context(prompt, context)
   return table.concat({ context, "", prompt }, "\n")
 end
 
----@param pane StuffPromptTmuxPane
+---@param pane StuffPromptAgentPane
 ---@param prompt string
 ---@return boolean
 local function send_text_to_pane(pane, prompt)
@@ -112,8 +84,7 @@ local function send_text_to_pane(pane, prompt)
   end
 
   if not tmux.send_to_pane(pane.pane_id, prompt) then return false end
-  local focus_result = tmux.run({ "select-pane", "-t", pane.pane_id }, { fail_silently = true })
-  if focus_result.code ~= 0 then
+  if not tmux.focus_pane(pane.pane_id) then
     vim.notify("Pasted prompt but failed to focus tmux pane " .. pane.pane_id, vim.log.levels.WARN)
   end
 
