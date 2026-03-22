@@ -114,8 +114,7 @@ local function send_text_to_pane(pane, prompt)
   if not tmux.send_to_pane(pane.pane_id, prompt) then return false end
   local focus_result = tmux.run({ "select-pane", "-t", pane.pane_id }, { fail_silently = true })
   if focus_result.code ~= 0 then
-    vim.notify("Failed to focus tmux pane " .. pane.pane_id, vim.log.levels.ERROR)
-    return false
+    vim.notify("Pasted prompt but failed to focus tmux pane " .. pane.pane_id, vim.log.levels.WARN)
   end
 
   vim.notify(string.format("Pasted prompt to %s in pane %s", pane.agent, pane.pane_id))
@@ -237,7 +236,7 @@ local function delete_buffer()
     vim.api.nvim_buf_delete(current_prompt_buf, {
       force = true,
     })
-    current_prompt_buf = true
+    current_prompt_buf = nil
   end
 
   current_prompt_file_path = nil
