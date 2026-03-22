@@ -21,9 +21,7 @@ end
 ---@field pane_active boolean
 
 ---@return boolean
-local function is_inside_tmux()
-  return vim.env.TMUX ~= nil and vim.env.TMUX ~= ""
-end
+local function is_inside_tmux() return vim.env.TMUX ~= nil and vim.env.TMUX ~= "" end
 
 ---@return string|nil
 local function get_current_tmux_session()
@@ -47,7 +45,9 @@ local function get_session_panes(session)
 
   local result = run({
     "list-panes",
-    "-a",
+    "-s",
+    "-t",
+    target_session,
     "-F",
     "#{session_name}\t#{pane_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}",
   }, { fail_silently = true })
@@ -101,7 +101,9 @@ local function focus_pane(pane_id)
     { "display-message", "-p", "-t", pane_id, "#{session_name}\t#{window_index}" },
     { fail_silently = true }
   )
-  if target_result.code ~= 0 or target_result.stdout == nil or target_result.stdout == "" then return false end
+  if target_result.code ~= 0 or target_result.stdout == nil or target_result.stdout == "" then
+    return false
+  end
 
   local fields = vim.split(vim.trim(target_result.stdout), "\t", { plain = true })
   local session_name = fields[1]
