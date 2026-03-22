@@ -12,6 +12,18 @@ local function setup()
     { desc = "New AI Prompt" }
   )
   vim.keymap.set(
+    { "n" },
+    "<leader>pq",
+    function() require("stuff.prompts").quick_for_current_line() end,
+    { desc = "Quick AI Prompt" }
+  )
+  vim.keymap.set(
+    { "v" },
+    "<leader>pq",
+    function() require("stuff.prompts").quick_for_selection() end,
+    { desc = "Quick AI Prompt" }
+  )
+  vim.keymap.set(
     "n",
     "<leader>pp",
     function() require("stuff.prompts").toggle() end,

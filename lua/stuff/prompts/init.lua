@@ -93,23 +93,36 @@ local function get_sendable_prompt(prompt)
   return vim.trim(table.concat(lines, "\n"))
 end
 
+---@param prompt string
+---@param context string
+---@return string
+local function get_prompt_with_context(prompt, context)
+  if context == "" then return prompt end
+
+  return table.concat({ context, "", prompt }, "\n")
+end
+
 ---@param pane StuffPromptTmuxPane
+---@param prompt string
 ---@return boolean
-local function send_prompt_to_pane(pane)
-  local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
-  local prompt = get_sendable_prompt(table.concat(lines, "\n"))
+local function send_text_to_pane(pane, prompt)
   if vim.trim(prompt) == "" then
     vim.notify("Prompt is empty", vim.log.levels.WARN)
     return false
   end
 
   if not tmux.send_to_pane(pane.pane_id, prompt) then return false end
+  local focus_result = tmux.run({ "select-pane", "-t", pane.pane_id }, { fail_silently = true })
+  if focus_result.code ~= 0 then
+    vim.notify("Failed to focus tmux pane " .. pane.pane_id, vim.log.levels.ERROR)
+    return false
+  end
 
   vim.notify(string.format("Pasted prompt to %s in pane %s", pane.agent, pane.pane_id))
   return true
 end
 
-local function send_to_tmux()
+local function send_to_tmux(text)
   if not tmux.is_inside_tmux() then
     vim.notify("Not inside a tmux session", vim.log.levels.WARN)
     return
@@ -122,20 +135,23 @@ local function send_to_tmux()
   end
 
   if #panes == 1 then
-    send_prompt_to_pane(panes[1])
+    send_text_to_pane(panes[1], text)
     return
   end
 
   Snacks.picker({
-    title = "Send Prompt To Tmux Pane",
-    items = vim.tbl_map(function(pane)
-      return vim.tbl_extend("force", pane, {
-        preview = {
-          text = pane.preview_text,
-          ft = "sh",
-        },
-      })
-    end, panes),
+    title = "Send text to tmux pane",
+    items = vim.tbl_map(
+      function(pane)
+        return vim.tbl_extend("force", pane, {
+          preview = {
+            text = pane.preview_text,
+            ft = "sh",
+          },
+        })
+      end,
+      panes
+    ),
     preview = "preview",
     format = function(item, _picker)
       local ret = {}
@@ -152,9 +168,30 @@ local function send_to_tmux()
     end,
     confirm = function(picker, item)
       picker:close()
-      send_prompt_to_pane(item)
+      send_text_to_pane(item, text)
     end,
   })
+end
+
+local function send_current_prompt_to_tmux()
+  local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
+  local prompt = get_sendable_prompt(table.concat(lines, "\n"))
+  send_to_tmux(prompt)
+end
+
+---@param context string
+local function quick(context)
+  vim.ui.input({ prompt = "Quick prompt: " }, function(input)
+    if input == nil then return end
+
+    local prompt = vim.trim(input)
+    if prompt == "" then
+      vim.notify("Prompt is empty", vim.log.levels.WARN)
+      return
+    end
+
+    send_to_tmux(get_prompt_with_context(prompt, context))
+  end)
 end
 
 local function get_prompt_file_path(description)
@@ -224,7 +261,7 @@ local function open_prompt(file_path)
   vim.keymap.set("n", "q", ":close<cr>", {
     buffer = current_prompt_buf,
   })
-  vim.keymap.set("n", "<leader>r", send_to_tmux, {
+  vim.keymap.set("n", "<leader>r", send_current_prompt_to_tmux, {
     buffer = current_prompt_buf,
     desc = "Send prompt to tmux AI agent",
   })
@@ -281,6 +318,18 @@ local function new_for_current_line()
   return new(context)
 end
 
+local function quick_for_selection()
+  local range = require("stuff.util.visual").get_visual_range_as_text()
+  local context = get_file_context(range)
+  return quick(context)
+end
+
+local function quick_for_current_line()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local context = get_file_context(string.format("L%d", lnum))
+  return quick(context)
+end
+
 local function toggle()
   if not current_prompt_buf or not vim.api.nvim_buf_is_valid(current_prompt_buf) then
     vim.notify("No active prompt", vim.log.levels.INFO)
@@ -319,7 +368,9 @@ end
 return {
   new_for_current_line = new_for_current_line,
   new_for_selection = new_for_selection,
+  quick_for_current_line = quick_for_current_line,
+  quick_for_selection = quick_for_selection,
   select = select,
-  send_to_tmux = send_to_tmux,
+  send_to_tmux = send_current_prompt_to_tmux,
   toggle = toggle,
 }
