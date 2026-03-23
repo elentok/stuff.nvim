@@ -13,7 +13,7 @@
 ---@field notes? NotesOptions
 ---@field open_link? OpenLinkOptions
 ---@field paste_image? boolean
----@field prompts? boolean
+---@field prompts? PromptsOptions
 ---@field put? boolean
 ---@field quickfix? boolean
 ---@field related_files? boolean
@@ -41,7 +41,7 @@ local default_options = {
   notes = {},
   open_link = {},
   paste_image = true,
-  prompts = true,
+  prompts = {},
   put = true,
   quickfix = true,
   related_files = true,
@@ -72,7 +72,7 @@ local function setup(opts)
   if opts.notes then require("stuff.notes.setup")(opts.notes) end
   if opts.open_link then require("stuff.open-link.setup")(opts.open_link) end
   if opts.paste_image then require("stuff.paste-image.setup")() end
-  if opts.prompts then require("stuff.prompts.setup")() end
+  if opts.prompts then require("stuff.prompts.setup")(opts.prompts) end
   if opts.put then require("stuff.put") end
   if opts.quickfix then require("stuff.quickfix")() end
   if opts.related_files then require("stuff.related-files.setup")() end

@@ -1,4 +1,12 @@
-local function setup()
+---@class PromptsOptions
+---@field mode? StuffPromptsMode
+
+---@param opts PromptsOptions
+local function setup(opts)
+  local util = require("stuff.util")
+  local config = require("stuff.prompts.config")
+  util.merge_config(config, opts)
+
   vim.keymap.set(
     { "n" },
     "<leader>pn",

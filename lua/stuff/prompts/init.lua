@@ -5,6 +5,7 @@ local current_prompt_file_path = nil
 local PROMPTS_DIR = vim.fs.joinpath(vim.fn.expand("~"), ".prompts")
 local AGENT_NAMES = { "claude", "codex", "opencode", "cursor-agent" }
 local tmux = require("stuff.util.tmux")
+local config = require("stuff.prompts.config")
 
 ---@param value string|nil
 ---@return string|nil
@@ -219,11 +220,17 @@ end
 local function open_prompt(file_path)
   close_window()
 
-  local basename = vim.fs.basename(file_path)
-  local win = require("stuff.util.float").open_float({
-    title = "Prompt: " .. basename,
-    filename = file_path,
-  })
+  local win
+  if config.mode == "split" then
+    vim.cmd("below split " .. vim.fn.fnameescape(file_path))
+    win = vim.api.nvim_get_current_win()
+  else
+    local basename = vim.fs.basename(file_path)
+    win = require("stuff.util.float").open_float({
+      title = "Prompt: " .. basename,
+      filename = file_path,
+    })
+  end
 
   current_prompt_file_path = file_path
   current_prompt_win = win
