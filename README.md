@@ -133,6 +133,24 @@ AI prompt manager for creating and managing prompts with file context.
 | `<leader>pp` | Toggle AI prompt window                                     |
 | `<leader>ps` | Select AI prompt (picker)                                   |
 
+When an agent process has a generic command name (for example `node`), use
+`scripts/stuff-set-tmux-agent.sh` to mark the tmux pane with `@stuff_agent`.
+
+Example wrapper for `cursor-agent`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec /path/to/stuff.nvim/scripts/stuff-set-tmux-agent.sh --agent cursor-agent -- cursor-agent "$@"
+```
+
+If the underlying command is `node`, keep the marker explicit:
+
+```bash
+exec /path/to/stuff.nvim/scripts/stuff-set-tmux-agent.sh --agent cursor-agent -- node /path/to/cursor-agent.js "$@"
+```
+
 ### Hebrew
 
 | Mapping    | Description              |

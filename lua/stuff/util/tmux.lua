@@ -19,6 +19,7 @@ end
 ---@field pane_start_command string
 ---@field pane_current_path string
 ---@field pane_active boolean
+---@field pane_agent_marker string
 
 ---@return boolean
 local function is_inside_tmux() return vim.env.TMUX ~= nil and vim.env.TMUX ~= "" end
@@ -49,7 +50,7 @@ local function get_session_panes(session)
     "-t",
     target_session,
     "-F",
-    "#{session_name}\t#{pane_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}",
+    "#{session_name}\t#{pane_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}\t#{@stuff_agent}",
   }, { fail_silently = true })
 
   if result.code ~= 0 or result.stdout == nil or result.stdout == "" then return {} end
@@ -64,6 +65,7 @@ local function get_session_panes(session)
     local pane_start_command = fields[5] or ""
     local pane_current_path = fields[6] or ""
     local pane_active = (fields[7] or "") == "1"
+    local pane_agent_marker = fields[8] or ""
     if pane_session == target_session and pane_id ~= nil and pane_id ~= "" then
       panes[#panes + 1] = {
         pane_id = pane_id,
@@ -72,6 +74,7 @@ local function get_session_panes(session)
         pane_start_command = pane_start_command,
         pane_current_path = pane_current_path,
         pane_active = pane_active,
+        pane_agent_marker = pane_agent_marker,
       }
     end
   end

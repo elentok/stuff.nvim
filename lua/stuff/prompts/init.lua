@@ -31,7 +31,8 @@ local function find_agent_panes()
   local panes = tmux.get_session_panes(session)
   local agent_panes = {} ---@type StuffPromptAgentPane[]
   for _, pane in ipairs(panes) do
-    local agent = detect_agent_name(pane.pane_current_command)
+    local agent = detect_agent_name(pane.pane_agent_marker)
+      or detect_agent_name(pane.pane_current_command)
       or detect_agent_name(pane.pane_start_command)
       or detect_agent_name(pane.pane_title)
 
