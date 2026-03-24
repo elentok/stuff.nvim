@@ -166,24 +166,20 @@ local function quick(context)
   end)
 end
 
-local function get_prompt_file_path(description)
+local function get_prompt_file_path()
   local date = os.date("%Y-%m-%d")
   local time = os.date("%H%M")
   local dir = vim.fs.joinpath(PROMPTS_DIR, date)
   vim.fn.mkdir(dir, "p")
-  return vim.fs.joinpath(dir, string.format("%s-%s.md", time, description))
+  local basename = vim.fn.expand("%:t:r")
+  if basename == "" then basename = "prompt" end
+  return vim.fs.joinpath(dir, string.format("%s-%s.md", time, basename))
 end
 
----@param description string
 ---@param context string
-local function get_initial_content(description, context)
-  local content = { "# " .. description }
-  if context ~= "" then
-    table.insert(content, "")
-    table.insert(content, context)
-  end
-
-  return table.concat(content, "\n")
+local function get_initial_content(context)
+  if context == "" then return "" end
+  return context
 end
 
 ---@param suffix string
@@ -247,14 +243,11 @@ local function open_prompt(file_path)
   return win
 end
 
----@param description string
 ---@param context string
----@return string|nil returns file_path when successful, nil if failed
-local function write_prompt_file(description, context)
-  local file_path = get_prompt_file_path(description)
-  local initial_content = get_initial_content(description, context)
+local function new(context)
+  local file_path = get_prompt_file_path()
+  local initial_content = get_initial_content(context)
 
-  -- Write initial content to the file
   local file = io.open(file_path, "w")
   if file then
     file:write(initial_content)
@@ -264,24 +257,15 @@ local function write_prompt_file(description, context)
     return
   end
 
-  return file_path
-end
+  close_window()
+  delete_buffer()
+  open_prompt(file_path)
 
----@param context string
-local function new(context)
-  vim.ui.input({ prompt = "Prompt description: ", completion = "file" }, function(description)
-    if not description or description:gsub("%s+", "") == "" then
-      vim.notify("Prompt description cannot be empty", vim.log.levels.WARN)
-      return
-    end
-
-    local file_path = write_prompt_file(description, context)
-    if file_path == nil then return end
-
-    close_window()
-    delete_buffer()
-    open_prompt(file_path)
-  end)
+  local buf = current_prompt_buf
+  local line_count = vim.api.nvim_buf_line_count(buf)
+  vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, { "", "" })
+  vim.api.nvim_win_set_cursor(current_prompt_win, { line_count + 2, 0 })
+  vim.cmd("startinsert")
 end
 
 local function new_for_selection()
