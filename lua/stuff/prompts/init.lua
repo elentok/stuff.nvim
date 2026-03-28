@@ -94,6 +94,7 @@ local function send_text_to_pane(pane, prompt)
   return true
 end
 
+---@param text string
 local function send_to_tmux(text)
   if not tmux.is_inside_tmux() then
     vim.notify("Not inside a tmux session", vim.log.levels.WARN)
@@ -149,6 +150,14 @@ local function send_current_prompt_to_tmux()
   local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
   local prompt = get_sendable_prompt(table.concat(lines, "\n"))
   send_to_tmux(prompt)
+end
+
+local function save_current_prompt_buffer()
+  local ok, err = pcall(vim.cmd.write)
+  if ok then return true end
+
+  vim.notify("Could not save prompt: " .. tostring(err), vim.log.levels.ERROR)
+  return false
 end
 
 ---@param context string
@@ -232,10 +241,16 @@ local function open_prompt(file_path)
   current_prompt_win = win
   current_prompt_buf = vim.api.nvim_win_get_buf(win)
 
-  vim.keymap.set("n", "q", ":close<cr>", {
+  vim.keymap.set("n", "q", function()
+    if not save_current_prompt_buffer() then return end
+    vim.cmd.close()
+  end, {
     buffer = current_prompt_buf,
   })
-  vim.keymap.set("n", "<leader>r", send_current_prompt_to_tmux, {
+  vim.keymap.set("n", "<leader>r", function()
+    if not save_current_prompt_buffer() then return end
+    send_current_prompt_to_tmux()
+  end, {
     buffer = current_prompt_buf,
     desc = "Send prompt to tmux AI agent",
   })
