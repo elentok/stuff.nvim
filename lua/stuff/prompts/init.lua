@@ -24,6 +24,19 @@ end
 ---@field preview_text string
 ---@field text string
 
+---@param value string
+---@return string
+local function sanitize_preview_text(value)
+  local text = value
+  text = text:gsub("\27%[[0-9;?]*[ -/]*[@-~]", "")
+  text = text:gsub("\27%][^\7]*\7", "")
+  text = text:gsub("\27%].-\27\\", "")
+  text = text:gsub("\27", "")
+  text = text:gsub("\r", "")
+  text = text:gsub("[%z\1-\8\11\12\14-\31\127]", "")
+  return text
+end
+
 ---@return StuffPromptAgentPane[]
 local function find_agent_panes()
   local session = tmux.get_current_tmux_session()
@@ -38,7 +51,7 @@ local function find_agent_panes()
       or detect_agent_name(pane.pane_title)
 
     if agent ~= nil then
-      local preview_text = tmux.get_pane_preview(pane.pane_id)
+      local preview_text = sanitize_preview_text(tmux.get_pane_preview(pane.pane_id))
       agent_panes[#agent_panes + 1] = vim.tbl_extend("force", pane, {
         agent = agent,
         preview_text = preview_text,
