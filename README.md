@@ -127,13 +127,14 @@ context. Key is configurable.
 
 AI prompt manager for creating and managing prompts with file context.
 
-| Mapping      | Description                                                 |
-| ------------ | ----------------------------------------------------------- |
-| `<leader>pn` | New AI prompt (line context in normal, selection in visual) |
+| Mapping      | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| `<leader>pn` | New AI prompt (line context in normal, selection in visual)   |
 | `<leader>pq` | Quick AI prompt (line context in normal, selection in visual) |
-| `<leader>pp` | Toggle AI prompt window                                     |
-| `<leader>ps` | Select AI prompt (picker)                                   |
-| `<leader>r`  | Send current prompt to tmux AI agent (inside prompt window) |
+| `<leader>pp` | Toggle AI prompt window                                       |
+| `<leader>ps` | Send current buffer/selection to tmux AI agent                |
+| `<leader>ph` | Select AI prompt from history(picker)                         |
+| `<leader>r`  | Send current prompt to tmux AI agent (inside prompt window)   |
 
 When an agent process has a generic command name (for example `node`), use
 `scripts/stuff-set-tmux-agent.sh` to mark the tmux pane with `@stuff_agent`.
@@ -145,12 +146,6 @@ Example wrapper for `cursor-agent`:
 set -euo pipefail
 
 exec /path/to/stuff.nvim/scripts/stuff-set-tmux-agent.sh --agent cursor-agent -- cursor-agent "$@"
-```
-
-If the underlying command is `node`, keep the marker explicit:
-
-```bash
-exec /path/to/stuff.nvim/scripts/stuff-set-tmux-agent.sh --agent cursor-agent -- node /path/to/cursor-agent.js "$@"
 ```
 
 ### Hebrew

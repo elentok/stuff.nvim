@@ -38,10 +38,22 @@ local function setup(opts)
     { desc = "Toggle AI Prompt Window" }
   )
   vim.keymap.set(
-    "n",
+    { "n" },
     "<leader>ps",
+    function() require("stuff.prompts").send_current_buffer_to_tmux() end,
+    { desc = "Send buffer to AI agent" }
+  )
+  vim.keymap.set(
+    { "v" },
+    "<leader>ps",
+    function() require("stuff.prompts").send_visual_selection_to_tmux() end,
+    { desc = "Send selection to AI agent" }
+  )
+  vim.keymap.set(
+    "n",
+    "<leader>ph",
     function() require("stuff.prompts").select() end,
-    { desc = "Select AI Prompt" }
+    { desc = "Select AI Prompt (from history)" }
   )
 end
 

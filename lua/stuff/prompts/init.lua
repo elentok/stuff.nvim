@@ -159,10 +159,25 @@ local function send_to_tmux(text)
   })
 end
 
-local function send_current_prompt_to_tmux()
-  local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
+---@param lines string[]
+local function send_lines_to_tmux(lines)
   local prompt = get_sendable_prompt(table.concat(lines, "\n"))
   send_to_tmux(prompt)
+end
+
+local function send_current_prompt_to_tmux()
+  local lines = vim.api.nvim_buf_get_lines(current_prompt_buf, 0, -1, false)
+  send_lines_to_tmux(lines)
+end
+
+local function send_current_buffer_to_tmux()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  send_lines_to_tmux(lines)
+end
+
+local function send_visual_selection_to_tmux()
+  local lines = require("stuff.util.visual").get_lines()
+  send_lines_to_tmux(lines)
 end
 
 local function save_current_prompt_buffer()
@@ -233,6 +248,16 @@ local function delete_buffer()
   current_prompt_file_path = nil
 end
 
+---@return boolean
+local function should_replace_active_window()
+  local buf = vim.api.nvim_get_current_buf()
+  if vim.api.nvim_buf_get_name(buf) ~= "" then return false end
+  if vim.bo[buf].modified then return false end
+
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, 1, false)
+  return vim.api.nvim_buf_line_count(buf) == 1 and (lines[1] or "") == ""
+end
+
 ---@param file_path string
 ---@return integer win_handle
 local function open_prompt(file_path)
@@ -240,7 +265,11 @@ local function open_prompt(file_path)
 
   local win
   if config.mode == "split" then
-    vim.cmd("below split " .. vim.fn.fnameescape(file_path))
+    if should_replace_active_window() then
+      vim.cmd("edit " .. vim.fn.fnameescape(file_path))
+    else
+      vim.cmd("below split " .. vim.fn.fnameescape(file_path))
+    end
     win = vim.api.nvim_get_current_win()
   else
     local basename = vim.fs.basename(file_path)
@@ -291,8 +320,12 @@ local function new(context)
 
   local buf = current_prompt_buf
   local line_count = vim.api.nvim_buf_line_count(buf)
-  vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, { "", "" })
-  vim.api.nvim_win_set_cursor(current_prompt_win, { line_count + 2, 0 })
+  if initial_content ~= "" then
+    vim.api.nvim_buf_set_lines(buf, line_count, line_count, false, { "", "" })
+    vim.api.nvim_win_set_cursor(current_prompt_win, { line_count + 2, 0 })
+  else
+    vim.api.nvim_win_set_cursor(current_prompt_win, { line_count, 0 })
+  end
   vim.cmd("startinsert")
 end
 
@@ -360,6 +393,8 @@ return {
   new_for_selection = new_for_selection,
   quick_for_current_line = quick_for_current_line,
   quick_for_selection = quick_for_selection,
+  send_current_buffer_to_tmux = send_current_buffer_to_tmux,
+  send_visual_selection_to_tmux = send_visual_selection_to_tmux,
   select = select,
   send_to_tmux = send_current_prompt_to_tmux,
   toggle = toggle,
