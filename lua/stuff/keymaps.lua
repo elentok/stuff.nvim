@@ -70,6 +70,11 @@ local function setup()
     "<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C-L><CR>",
     { desc = "Redraw / Clear hlsearch / Diff Update" }
   )
+
+  vim.keymap.set("n", "<leader>cp", function()
+    local cword = vim.fn.expand("<cword>")
+    Snacks.terminal("colr " .. vim.fn.shellescape(cword), { win = { border = "rounded" } })
+  end, { desc = "Color picker" })
 end
 
 return setup

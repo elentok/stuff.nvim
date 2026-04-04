@@ -148,12 +148,6 @@ set -euo pipefail
 exec /path/to/stuff.nvim/scripts/stuff-set-tmux-agent.sh --agent cursor-agent -- cursor-agent "$@"
 ```
 
-### Hebrew
-
-| Mapping    | Description              |
-| ---------- | ------------------------ |
-| `<space>h` | Toggle Hebrew mode (RTL) |
-
 ### Jira
 
 | Mapping      | Description        |
@@ -174,9 +168,12 @@ Keymaps attached on `LspAttach`:
 
 ### Terminal 🖥️
 
-| Mapping | Description     |
-| ------- | --------------- |
-| `<c-q>` | Toggle terminal |
+| Mapping      | Description     |
+| ------------ | --------------- |
+| `<c-q>`      | Toggle terminal |
+| `<leader>cp` | Color picker    |
+
+`<leader>cp` requires [`colr`](https://github.com/elentok/colr) to be installed.
 
 ### Buffer 📄
 
@@ -197,3 +194,17 @@ Treesitter-based folding with LSP fallback. No keymaps.
 ### Quickfix 🔧
 
 Quickfix window configuration. Press `q` to close.
+
+### Color Picker 🖌️
+
+| Mapping      | Description  |
+| ------------ | ------------ |
+| `<leader>cp` | Color picker |
+
+Requires [`colr`](https://github.com/elentok/colr) to be installed.
+
+### Hebrew
+
+| Mapping    | Description              |
+| ---------- | ------------------------ |
+| `<space>h` | Toggle Hebrew mode (RTL) |
