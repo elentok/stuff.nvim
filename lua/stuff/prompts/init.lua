@@ -107,6 +107,26 @@ local function send_text_to_pane(pane, prompt)
   return true
 end
 
+---@param picker snacks.Picker
+local function scroll_preview_to_bottom(picker)
+  vim.schedule(function()
+    local preview = picker.preview
+    if preview == nil or preview.win == nil or not preview.win:valid() then return end
+
+    local win = preview.win.win
+    local buf = preview.win.buf
+    if not vim.api.nvim_win_is_valid(win) or not vim.api.nvim_buf_is_valid(buf) then return end
+
+    local line_count = vim.api.nvim_buf_line_count(buf)
+    if line_count < 1 then return end
+
+    vim.api.nvim_win_set_cursor(win, { line_count, 0 })
+    vim.api.nvim_win_call(win, function()
+      vim.cmd("norm! zb")
+    end)
+  end)
+end
+
 ---@param text string
 local function send_to_tmux(text)
   if not tmux.is_inside_tmux() then
@@ -139,6 +159,9 @@ local function send_to_tmux(text)
       panes
     ),
     preview = "preview",
+    on_change = function(picker, _item)
+      scroll_preview_to_bottom(picker)
+    end,
     format = function(item, _picker)
       local ret = {}
       local label_hl = item.pane_active and "DiagnosticOk" or "DiagnosticHint"
