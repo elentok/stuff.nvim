@@ -4,7 +4,6 @@ local current_prompt_file_path = nil
 
 local PROMPTS_DIR = vim.fs.joinpath(vim.fn.expand("~"), ".prompts")
 local AGENT_NAMES = { "claude", "codex", "opencode", "cursor-agent" }
-local tmux = require("stuff.util.tmux")
 local config = require("stuff.prompts.config")
 
 ---@param value string|nil
@@ -19,8 +18,15 @@ local function detect_agent_name(value)
 
   return nil
 end
----@class StuffPromptAgentPane: TmuxPane
+---@class StuffPromptAgentTarget
 ---@field agent string
+---@field backend "tmux"|"kitty"
+---@field id string
+---@field title string
+---@field current_command string
+---@field start_command string
+---@field current_path string
+---@field active boolean
 ---@field preview_text string
 ---@field text string
 
@@ -37,13 +43,14 @@ local function sanitize_preview_text(value)
   return text
 end
 
----@return StuffPromptAgentPane[]
-local function find_agent_panes()
+---@return StuffPromptAgentTarget[]
+local function find_tmux_agent_targets()
+  local tmux = require("stuff.util.tmux")
   local session = tmux.get_current_tmux_session()
   if session == nil then return {} end
 
   local panes = tmux.get_session_panes(session)
-  local agent_panes = {} ---@type StuffPromptAgentPane[]
+  local agent_targets = {} ---@type StuffPromptAgentTarget[]
   for _, pane in ipairs(panes) do
     local agent = detect_agent_name(pane.pane_agent_marker)
       or detect_agent_name(pane.pane_current_command)
@@ -52,8 +59,15 @@ local function find_agent_panes()
 
     if agent ~= nil then
       local preview_text = sanitize_preview_text(tmux.get_pane_preview(pane.pane_id))
-      agent_panes[#agent_panes + 1] = vim.tbl_extend("force", pane, {
+      agent_targets[#agent_targets + 1] = {
         agent = agent,
+        backend = "tmux",
+        id = pane.pane_id,
+        title = pane.pane_title,
+        current_command = pane.pane_current_command,
+        start_command = pane.pane_start_command,
+        current_path = pane.pane_current_path,
+        active = pane.pane_active,
         preview_text = preview_text,
         text = table.concat({
           agent,
@@ -64,11 +78,51 @@ local function find_agent_panes()
           pane.pane_current_path,
           preview_text,
         }, " "),
-      })
+      }
     end
   end
 
-  return agent_panes
+  return agent_targets
+end
+
+---@return StuffPromptAgentTarget[]
+local function find_kitty_agent_targets()
+  local kitty = require("stuff.util.kitty")
+  local windows = kitty.get_windows()
+  local agent_targets = {} ---@type StuffPromptAgentTarget[]
+  for _, window in ipairs(windows) do
+    local preview_text = sanitize_preview_text(kitty.get_window_preview(window.window_id))
+    local agent = detect_agent_name(window.window_agent_marker)
+      or detect_agent_name(window.window_current_command)
+      or detect_agent_name(window.window_start_command)
+      or detect_agent_name(window.window_title)
+      or detect_agent_name(preview_text)
+
+    if agent ~= nil then
+      agent_targets[#agent_targets + 1] = {
+        agent = agent,
+        backend = "kitty",
+        id = window.window_id,
+        title = window.window_title,
+        current_command = window.window_current_command,
+        start_command = window.window_start_command,
+        current_path = window.window_current_path,
+        active = window.window_active,
+        preview_text = preview_text,
+        text = table.concat({
+          agent,
+          window.window_id,
+          window.window_title,
+          window.window_current_command,
+          window.window_start_command,
+          window.window_current_path,
+          preview_text,
+        }, " "),
+      }
+    end
+  end
+
+  return agent_targets
 end
 
 ---@param prompt string
@@ -89,21 +143,45 @@ local function get_prompt_with_context(prompt, context)
   return table.concat({ context, "", prompt }, "\n")
 end
 
----@param pane StuffPromptAgentPane
+---@return "tmux"|"kitty"|nil
+local function get_terminal_backend()
+  if require("stuff.util.tmux").is_inside_tmux() then return "tmux" end
+  if require("stuff.util.kitty").is_inside_kitty() then return "kitty" end
+  return nil
+end
+
+---@param target StuffPromptAgentTarget
 ---@param prompt string
 ---@return boolean
-local function send_text_to_pane(pane, prompt)
+local function send_text_to_target(target, prompt)
   if vim.trim(prompt) == "" then
     vim.notify("Prompt is empty", vim.log.levels.WARN)
     return false
   end
 
-  if not tmux.send_to_pane(pane.pane_id, prompt) then return false end
-  if not tmux.focus_pane(pane.pane_id) then
-    vim.notify("Pasted prompt but failed to focus tmux pane " .. pane.pane_id, vim.log.levels.WARN)
+  local ok = false
+  local focused = false
+  if target.backend == "tmux" then
+    local tmux = require("stuff.util.tmux")
+    ok = tmux.send_to_pane(target.id, prompt)
+    focused = tmux.focus_pane(target.id)
+  else
+    local kitty = require("stuff.util.kitty")
+    ok = kitty.send_to_window(target.id, prompt)
+    focused = kitty.focus_window(target.id)
   end
 
-  vim.notify(string.format("Pasted prompt to %s in pane %s", pane.agent, pane.pane_id))
+  if not ok then return false end
+  if not focused then
+    vim.notify(
+      string.format("Pasted prompt but failed to focus %s target %s", target.backend, target.id),
+      vim.log.levels.WARN
+    )
+  end
+
+  vim.notify(
+    string.format("Pasted prompt to %s in %s target %s", target.agent, target.backend, target.id)
+  )
   return true
 end
 
@@ -115,61 +193,70 @@ local function scroll_preview_to_bottom(picker)
 
     local win = preview.win.win
     local buf = preview.win.buf
+    if win == nil or buf == nil then return end
     if not vim.api.nvim_win_is_valid(win) or not vim.api.nvim_buf_is_valid(buf) then return end
 
     local line_count = vim.api.nvim_buf_line_count(buf)
     if line_count < 1 then return end
 
     vim.api.nvim_win_set_cursor(win, { line_count, 0 })
-    vim.api.nvim_win_call(win, function()
-      vim.cmd("norm! zb")
-    end)
+    vim.api.nvim_win_call(win, function() vim.cmd("norm! zb") end)
   end)
 end
 
+---@param backend "tmux"|"kitty"
+---@return StuffPromptAgentTarget[]
+local function find_agent_targets(backend)
+  if backend == "tmux" then return find_tmux_agent_targets() end
+  return find_kitty_agent_targets()
+end
+
 ---@param text string
-local function send_to_tmux(text)
-  if not tmux.is_inside_tmux() then
-    vim.notify("Not inside a tmux session", vim.log.levels.WARN)
+local function send_to_agent_terminal(text)
+  local backend = get_terminal_backend()
+  if backend == nil then
+    vim.notify("Only tmux and kitty are supported", vim.log.levels.WARN)
     return
   end
 
-  local panes = find_agent_panes()
-  if #panes == 0 then
-    vim.notify("No AI agent panes found in the current tmux session", vim.log.levels.WARN)
+  local targets = find_agent_targets(backend)
+  if #targets == 0 then
+    vim.notify(
+      string.format("No AI agent targets found in the current %s session", backend),
+      vim.log.levels.WARN
+    )
     return
   end
 
-  if #panes == 1 then
-    send_text_to_pane(panes[1], text)
+  if #targets == 1 then
+    send_text_to_target(targets[1], text)
     return
   end
 
   Snacks.picker({
-    title = "Send text to tmux pane",
+    title = string.format("Send text to %s target", backend),
     items = vim.tbl_map(
-      function(pane)
-        return vim.tbl_extend("force", pane, {
+      function(target)
+        return vim.tbl_extend("force", target, {
           preview = {
-            text = pane.preview_text,
+            text = target.preview_text,
             ft = "sh",
           },
         })
       end,
-      panes
+      targets
     ),
     preview = "preview",
-    on_change = function(picker, _item)
-      scroll_preview_to_bottom(picker)
-    end,
+    on_change = function(picker, _item) scroll_preview_to_bottom(picker) end,
     format = function(item, _picker)
       local ret = {}
-      local label_hl = item.pane_active and "DiagnosticOk" or "DiagnosticHint"
-      local title = item.pane_title ~= "" and item.pane_title or item.pane_current_command
-      local path = item.pane_current_path ~= "" and item.pane_current_path or "[no path]"
+      local label_hl = item.active and "DiagnosticOk" or "DiagnosticHint"
+      local title = item.title ~= "" and item.title or item.current_command
+      local path = item.current_path ~= "" and item.current_path or "[no path]"
 
       table.insert(ret, { " " .. item.agent .. " ", "DiagnosticInfo" })
-      table.insert(ret, { " " .. item.pane_id .. " ", label_hl })
+      table.insert(ret, { " " .. item.backend .. " ", "Comment" })
+      table.insert(ret, { " " .. item.id .. " ", label_hl })
       table.insert(ret, { " " .. title })
       table.insert(ret, { "  " .. path, "Comment" })
 
@@ -177,7 +264,7 @@ local function send_to_tmux(text)
     end,
     confirm = function(picker, item)
       picker:close()
-      send_text_to_pane(item, text)
+      send_text_to_target(item, text)
     end,
   })
 end
@@ -185,7 +272,7 @@ end
 ---@param lines string[]
 local function send_lines_to_tmux(lines)
   local prompt = get_sendable_prompt(table.concat(lines, "\n"))
-  send_to_tmux(prompt)
+  send_to_agent_terminal(prompt)
 end
 
 local function send_current_prompt_to_tmux()
@@ -222,7 +309,7 @@ local function quick(context)
       return
     end
 
-    send_to_tmux(get_prompt_with_context(prompt, context))
+    send_to_agent_terminal(get_prompt_with_context(prompt, context))
   end)
 end
 
@@ -317,7 +404,7 @@ local function open_prompt(file_path)
     send_current_prompt_to_tmux()
   end, {
     buffer = current_prompt_buf,
-    desc = "Send prompt to tmux AI agent",
+    desc = "Send prompt to AI agent",
   })
 
   return win
