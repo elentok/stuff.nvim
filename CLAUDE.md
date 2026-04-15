@@ -1,1 +1,1 @@
-AGENTS.md
+.ai/index.md
