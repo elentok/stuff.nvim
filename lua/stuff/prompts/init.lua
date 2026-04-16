@@ -22,6 +22,8 @@ end
 ---@field agent string
 ---@field backend "tmux"|"kitty"
 ---@field id string
+---@field scope_id string
+---@field scope_active boolean
 ---@field title string
 ---@field current_command string
 ---@field start_command string
@@ -41,6 +43,27 @@ local function sanitize_preview_text(value)
   text = text:gsub("\r", "")
   text = text:gsub("[%z\1-\8\11\12\14-\31\127]", "")
   return text
+end
+
+---@param targets StuffPromptAgentTarget[]
+---@return StuffPromptAgentTarget[]
+local function prefer_active_scope_targets(targets)
+  local active_scope_ids = {} ---@type table<string, boolean>
+  for _, target in ipairs(targets) do
+    if target.scope_active and target.scope_id ~= "" then active_scope_ids[target.scope_id] = true end
+  end
+
+  if vim.tbl_isempty(active_scope_ids) then return targets end
+
+  local preferred = {} ---@type StuffPromptAgentTarget[]
+  for _, target in ipairs(targets) do
+    if target.scope_id ~= "" and active_scope_ids[target.scope_id] then
+      preferred[#preferred + 1] = target
+    end
+  end
+
+  if #preferred > 0 then return preferred end
+  return targets
 end
 
 ---@return StuffPromptAgentTarget[]
@@ -63,6 +86,8 @@ local function find_tmux_agent_targets()
         agent = agent,
         backend = "tmux",
         id = pane.pane_id,
+        scope_id = pane.pane_window_id,
+        scope_active = pane.pane_window_active,
         title = pane.pane_title,
         current_command = pane.pane_current_command,
         start_command = pane.pane_start_command,
@@ -82,7 +107,7 @@ local function find_tmux_agent_targets()
     end
   end
 
-  return agent_targets
+  return prefer_active_scope_targets(agent_targets)
 end
 
 ---@return StuffPromptAgentTarget[]
@@ -103,6 +128,8 @@ local function find_kitty_agent_targets()
         agent = agent,
         backend = "kitty",
         id = window.window_id,
+        scope_id = window.tab_id,
+        scope_active = window.tab_active,
         title = window.window_title,
         current_command = window.window_current_command,
         start_command = window.window_start_command,
@@ -122,7 +149,7 @@ local function find_kitty_agent_targets()
     end
   end
 
-  return agent_targets
+  return prefer_active_scope_targets(agent_targets)
 end
 
 ---@param prompt string
@@ -508,4 +535,7 @@ return {
   select = select,
   send_to_tmux = send_current_prompt_to_tmux,
   toggle = toggle,
+  _test = {
+    prefer_active_scope_targets = prefer_active_scope_targets,
+  },
 }

@@ -14,11 +14,13 @@ end
 
 ---@class KittyWindow
 ---@field window_id string
+---@field tab_id string
 ---@field window_title string
 ---@field window_current_command string
 ---@field window_start_command string
 ---@field window_current_path string
 ---@field window_active boolean
+---@field tab_active boolean
 ---@field window_agent_marker string
 
 ---@return boolean
@@ -78,11 +80,13 @@ local function get_windows()
       for _, window in ipairs(tab.windows or {}) do
         windows[#windows + 1] = {
           window_id = tostring(window.id or ""),
+          tab_id = tostring(tab.id or ""),
           window_title = window.title or "",
           window_current_command = get_current_command(window),
           window_start_command = stringify_cmdline(window.cmdline),
           window_current_path = get_current_path(window),
           window_active = window.is_active == true,
+          tab_active = tab.is_active == true,
           window_agent_marker = "",
         }
       end

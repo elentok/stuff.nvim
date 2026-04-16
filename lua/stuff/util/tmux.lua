@@ -14,11 +14,13 @@ end
 
 ---@class TmuxPane
 ---@field pane_id string
+---@field pane_window_id string
 ---@field pane_title string
 ---@field pane_current_command string
 ---@field pane_start_command string
 ---@field pane_current_path string
 ---@field pane_active boolean
+---@field pane_window_active boolean
 ---@field pane_agent_marker string
 
 ---@return boolean
@@ -50,7 +52,7 @@ local function get_session_panes(session)
     "-t",
     target_session,
     "-F",
-    "#{session_name}\t#{pane_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}\t#{@stuff_agent}",
+    "#{session_name}\t#{pane_id}\t#{window_id}\t#{pane_title}\t#{pane_current_command}\t#{pane_start_command}\t#{pane_current_path}\t#{pane_active}\t#{window_active}\t#{@stuff_agent}",
   }, { fail_silently = true })
 
   if result.code ~= 0 or result.stdout == nil or result.stdout == "" then return {} end
@@ -60,20 +62,24 @@ local function get_session_panes(session)
     local fields = vim.split(line, "\t", { plain = true })
     local pane_session = fields[1] or ""
     local pane_id = fields[2]
-    local pane_title = fields[3] or ""
-    local pane_current_command = fields[4] or ""
-    local pane_start_command = fields[5] or ""
-    local pane_current_path = fields[6] or ""
-    local pane_active = (fields[7] or "") == "1"
-    local pane_agent_marker = fields[8] or ""
+    local pane_window_id = fields[3] or ""
+    local pane_title = fields[4] or ""
+    local pane_current_command = fields[5] or ""
+    local pane_start_command = fields[6] or ""
+    local pane_current_path = fields[7] or ""
+    local pane_active = (fields[8] or "") == "1"
+    local pane_window_active = (fields[9] or "") == "1"
+    local pane_agent_marker = fields[10] or ""
     if pane_session == target_session and pane_id ~= nil and pane_id ~= "" then
       panes[#panes + 1] = {
         pane_id = pane_id,
+        pane_window_id = pane_window_id,
         pane_title = pane_title,
         pane_current_command = pane_current_command,
         pane_start_command = pane_start_command,
         pane_current_path = pane_current_path,
         pane_active = pane_active,
+        pane_window_active = pane_window_active,
         pane_agent_marker = pane_agent_marker,
       }
     end
