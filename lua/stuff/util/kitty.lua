@@ -25,7 +25,7 @@ end
 
 ---@return boolean
 local function is_inside_kitty()
-  return vim.env.KITTY_WINDOW_ID ~= nil and vim.env.KITTY_WINDOW_ID ~= ""
+  return vim.env.KITTY_LISTEN_ON ~= nil and vim.env.KITTY_LISTEN_ON ~= ""
 end
 
 ---@param cmdline string[]|string|nil
@@ -147,6 +147,21 @@ local function send_to_window(window_id, text)
   return true
 end
 
+---@param command string[]
+local function new_tab(command)
+  if not is_inside_kitty() then vim.notify("Not inside kitty", vim.log.levels.ERROR) end
+
+  vim.system(vim.list_extend({
+    "kitty",
+    "@",
+    "launch",
+    "--type=tab",
+    "--location=after",
+    "--cwd=current",
+    "--copy-env",
+  }, command))
+end
+
 return {
   run = run,
   is_inside_kitty = is_inside_kitty,
@@ -154,4 +169,5 @@ return {
   get_window_preview = get_window_preview,
   focus_window = focus_window,
   send_to_window = send_to_window,
+  new_tab = new_tab,
 }
