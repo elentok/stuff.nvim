@@ -376,15 +376,20 @@ local function close_window()
   current_prompt_win = nil
 end
 
+local function clear_prompt_state()
+  current_prompt_win = nil
+  current_prompt_buf = nil
+  current_prompt_file_path = nil
+end
+
 local function delete_buffer()
-  if current_prompt_buf ~= nil then
+  if current_prompt_buf ~= nil and vim.api.nvim_buf_is_valid(current_prompt_buf) then
     vim.api.nvim_buf_delete(current_prompt_buf, {
       force = true,
     })
-    current_prompt_buf = nil
   end
 
-  current_prompt_file_path = nil
+  clear_prompt_state()
 end
 
 ---@return boolean
@@ -421,6 +426,15 @@ local function open_prompt(file_path)
   current_prompt_file_path = file_path
   current_prompt_win = win
   current_prompt_buf = vim.api.nvim_win_get_buf(win)
+  local prompt_buf = current_prompt_buf
+
+  vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+    buffer = prompt_buf,
+    once = true,
+    callback = function()
+      if current_prompt_buf == prompt_buf then clear_prompt_state() end
+    end,
+  })
 
   vim.keymap.set("n", "q", function()
     if not save_current_prompt_buffer() then return end
