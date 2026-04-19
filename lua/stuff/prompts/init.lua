@@ -50,7 +50,9 @@ end
 local function prefer_active_scope_targets(targets)
   local active_scope_ids = {} ---@type table<string, boolean>
   for _, target in ipairs(targets) do
-    if target.scope_active and target.scope_id ~= "" then active_scope_ids[target.scope_id] = true end
+    if target.scope_active and target.scope_id ~= "" then
+      active_scope_ids[target.scope_id] = true
+    end
   end
 
   if vim.tbl_isempty(active_scope_ids) then return targets end
@@ -512,8 +514,11 @@ end
 local function select()
   Snacks.picker({
     finder = "files",
+    cmd = "fd",
     dirs = { PROMPTS_DIR },
     ft = "md",
+    matcher = { sort_empty = true },
+    sort = { fields = { "file:desc", "idx" } },
     prompt = "Select Prompt:",
     confirm = function(picker, item)
       picker:close()
