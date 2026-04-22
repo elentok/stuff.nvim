@@ -112,6 +112,25 @@ local function get_window_preview(window_id)
 end
 
 ---@param window_id string
+---@param callback fun(text: string)
+local function get_window_preview_async(window_id, callback)
+  vim.system({
+    "kitty",
+    "@",
+    "get-text",
+    "--match",
+    "id:" .. window_id,
+    "--extent",
+    "screen",
+  }, function(result)
+    local text = "Preview unavailable"
+    if result.code == 0 and result.stdout ~= nil and result.stdout ~= "" then text = result.stdout end
+
+    vim.schedule(function() callback(text) end)
+  end)
+end
+
+---@param window_id string
 ---@return boolean
 local function focus_window(window_id)
   local result = run({ "focus-window", "--match", "id:" .. window_id }, { fail_silently = true })
@@ -167,6 +186,7 @@ return {
   is_inside_kitty = is_inside_kitty,
   get_windows = get_windows,
   get_window_preview = get_window_preview,
+  get_window_preview_async = get_window_preview_async,
   focus_window = focus_window,
   send_to_window = send_to_window,
   new_tab = new_tab,

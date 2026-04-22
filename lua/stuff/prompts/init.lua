@@ -3,156 +3,8 @@ local current_prompt_buf = nil
 local current_prompt_file_path = nil
 
 local PROMPTS_DIR = vim.fs.joinpath(vim.fn.expand("~"), ".prompts")
-local AGENT_NAMES = { "claude", "codex", "opencode", "cursor-agent" }
 local config = require("stuff.prompts.config")
-
----@param value string|nil
----@return string|nil
-local function detect_agent_name(value)
-  if value == nil or value == "" then return nil end
-
-  local lower = value:lower()
-  for _, agent in ipairs(AGENT_NAMES) do
-    if lower:find(agent, 1, true) then return agent end
-  end
-
-  return nil
-end
----@class StuffPromptAgentTarget
----@field agent string
----@field backend "tmux"|"kitty"
----@field id string
----@field scope_id string
----@field scope_active boolean
----@field title string
----@field current_command string
----@field start_command string
----@field current_path string
----@field active boolean
----@field preview_text string
----@field text string
-
----@param value string
----@return string
-local function sanitize_preview_text(value)
-  local text = value
-  text = text:gsub("\27%[[0-9;?]*[ -/]*[@-~]", "")
-  text = text:gsub("\27%][^\7]*\7", "")
-  text = text:gsub("\27%].-\27\\", "")
-  text = text:gsub("\27", "")
-  text = text:gsub("\r", "")
-  text = text:gsub("[%z\1-\8\11\12\14-\31\127]", "")
-  return text
-end
-
----@param targets StuffPromptAgentTarget[]
----@return StuffPromptAgentTarget[]
-local function prefer_active_scope_targets(targets)
-  local active_scope_ids = {} ---@type table<string, boolean>
-  for _, target in ipairs(targets) do
-    if target.scope_active and target.scope_id ~= "" then
-      active_scope_ids[target.scope_id] = true
-    end
-  end
-
-  if vim.tbl_isempty(active_scope_ids) then return targets end
-
-  local preferred = {} ---@type StuffPromptAgentTarget[]
-  for _, target in ipairs(targets) do
-    if target.scope_id ~= "" and active_scope_ids[target.scope_id] then
-      preferred[#preferred + 1] = target
-    end
-  end
-
-  if #preferred > 0 then return preferred end
-  return targets
-end
-
----@return StuffPromptAgentTarget[]
-local function find_tmux_agent_targets()
-  local tmux = require("stuff.util.tmux")
-  local session = tmux.get_current_tmux_session()
-  if session == nil then return {} end
-
-  local panes = tmux.get_session_panes(session)
-  local agent_targets = {} ---@type StuffPromptAgentTarget[]
-  for _, pane in ipairs(panes) do
-    local agent = detect_agent_name(pane.pane_agent_marker)
-      or detect_agent_name(pane.pane_current_command)
-      or detect_agent_name(pane.pane_start_command)
-      or detect_agent_name(pane.pane_title)
-
-    if agent ~= nil then
-      local preview_text = sanitize_preview_text(tmux.get_pane_preview(pane.pane_id))
-      agent_targets[#agent_targets + 1] = {
-        agent = agent,
-        backend = "tmux",
-        id = pane.pane_id,
-        scope_id = pane.pane_window_id,
-        scope_active = pane.pane_window_active,
-        title = pane.pane_title,
-        current_command = pane.pane_current_command,
-        start_command = pane.pane_start_command,
-        current_path = pane.pane_current_path,
-        active = pane.pane_active,
-        preview_text = preview_text,
-        text = table.concat({
-          agent,
-          pane.pane_id,
-          pane.pane_title,
-          pane.pane_current_command,
-          pane.pane_start_command,
-          pane.pane_current_path,
-          preview_text,
-        }, " "),
-      }
-    end
-  end
-
-  return prefer_active_scope_targets(agent_targets)
-end
-
----@return StuffPromptAgentTarget[]
-local function find_kitty_agent_targets()
-  local kitty = require("stuff.util.kitty")
-  local windows = kitty.get_windows()
-  local agent_targets = {} ---@type StuffPromptAgentTarget[]
-  for _, window in ipairs(windows) do
-    local preview_text = sanitize_preview_text(kitty.get_window_preview(window.window_id))
-    local agent = detect_agent_name(window.window_agent_marker)
-      or detect_agent_name(window.window_current_command)
-      or detect_agent_name(window.window_start_command)
-      or detect_agent_name(window.window_title)
-      or detect_agent_name(preview_text)
-
-    if agent ~= nil then
-      agent_targets[#agent_targets + 1] = {
-        agent = agent,
-        backend = "kitty",
-        id = window.window_id,
-        scope_id = window.tab_id,
-        scope_active = window.tab_active,
-        title = window.window_title,
-        current_command = window.window_current_command,
-        start_command = window.window_start_command,
-        current_path = window.window_current_path,
-        active = window.window_active,
-        preview_text = preview_text,
-        text = table.concat({
-          agent,
-          window.window_id,
-          window.window_title,
-          window.window_current_command,
-          window.window_start_command,
-          window.window_current_path,
-          preview_text,
-        }, " "),
-      }
-    end
-  end
-
-  return prefer_active_scope_targets(agent_targets)
-end
+local find_agent = require("stuff.prompts.find-agent")
 
 ---@param prompt string
 ---@return string
@@ -233,11 +85,46 @@ local function scroll_preview_to_bottom(picker)
   end)
 end
 
----@param backend "tmux"|"kitty"
----@return StuffPromptAgentTarget[]
-local function find_agent_targets(backend)
-  if backend == "tmux" then return find_tmux_agent_targets() end
-  return find_kitty_agent_targets()
+---@param picker snacks.Picker
+---@param text string
+local function set_picker_preview_text(picker, text)
+  local preview = picker.preview
+  if preview == nil or preview.win == nil or not preview.win:valid() then return end
+
+  local buf = preview.win.buf
+  if buf == nil or not vim.api.nvim_buf_is_valid(buf) then return end
+
+  local was_modifiable = vim.bo[buf].modifiable
+  vim.bo[buf].modifiable = true
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(text, "\n", { plain = true }))
+  vim.bo[buf].modifiable = was_modifiable
+end
+
+---@param picker snacks.Picker
+---@param item StuffPromptAgentTarget|nil
+---@param state { cache: table<string, string>, request_id: integer }
+local function update_kitty_picker_preview(picker, item, state)
+  if item == nil then return end
+
+  local cached_preview = state.cache[item.id]
+  if cached_preview ~= nil then
+    set_picker_preview_text(picker, cached_preview)
+    scroll_preview_to_bottom(picker)
+    return
+  end
+
+  set_picker_preview_text(picker, "Loading kitty preview...")
+  local request_id = state.request_id + 1
+  state.request_id = request_id
+
+  require("stuff.util.kitty").get_window_preview_async(item.id, function(preview_text)
+    if state.request_id ~= request_id then return end
+
+    local sanitized_preview = find_agent.sanitize_preview_text(preview_text)
+    state.cache[item.id] = sanitized_preview
+    set_picker_preview_text(picker, sanitized_preview)
+    scroll_preview_to_bottom(picker)
+  end)
 end
 
 ---@param text string
@@ -248,7 +135,7 @@ local function send_to_agent_terminal(text)
     return
   end
 
-  local targets = find_agent_targets(backend)
+  local targets = find_agent.find(backend)
   if #targets == 0 then
     vim.notify(
       string.format("No AI agent targets found in the current %s session", backend),
@@ -262,13 +149,17 @@ local function send_to_agent_terminal(text)
     return
   end
 
+  local preview_state = {
+    cache = {}, ---@type table<string, string>
+    request_id = 0,
+  }
   Snacks.picker({
     title = string.format("Send text to %s target", backend),
     items = vim.tbl_map(
       function(target)
         return vim.tbl_extend("force", target, {
           preview = {
-            text = target.preview_text,
+            text = target.backend == "kitty" and "Loading kitty preview..." or target.preview_text,
             ft = "sh",
           },
         })
@@ -276,7 +167,14 @@ local function send_to_agent_terminal(text)
       targets
     ),
     preview = "preview",
-    on_change = function(picker, _item) scroll_preview_to_bottom(picker) end,
+    on_change = function(picker, item)
+      if item == nil then return end
+      if item.backend == "kitty" then
+        update_kitty_picker_preview(picker, item, preview_state)
+      else
+        scroll_preview_to_bottom(picker)
+      end
+    end,
     format = function(item, _picker)
       local ret = {}
       local label_hl = item.active and "DiagnosticOk" or "DiagnosticHint"
@@ -555,6 +453,6 @@ return {
   send_to_tmux = send_current_prompt_to_tmux,
   toggle = toggle,
   _test = {
-    prefer_active_scope_targets = prefer_active_scope_targets,
+    find_agent = find_agent,
   },
 }
