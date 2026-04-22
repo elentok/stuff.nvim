@@ -22,6 +22,7 @@ end
 ---@field window_active boolean
 ---@field tab_active boolean
 ---@field window_agent_marker string
+---@field session_name string
 
 ---@return boolean
 local function is_inside_kitty()
@@ -88,6 +89,7 @@ local function get_windows()
           window_active = window.is_active == true,
           tab_active = tab.is_active == true,
           window_agent_marker = "",
+          session_name = window.session_name or "",
         }
       end
     end

@@ -187,10 +187,36 @@ local function collect_kitty_agent_targets(windows, get_preview)
   return prefer_active_scope_targets(agent_targets)
 end
 
+---@param windows stuff.util.kitty.KittyWindow[]
+---@return stuff.util.kitty.KittyWindow[]
+local function filter_windows_by_current_session(windows)
+  local current_window_id = tostring(vim.env.KITTY_WINDOW_ID or "")
+  if current_window_id == "" then return windows end
+
+  local current_session = ""
+  for _, window in ipairs(windows) do
+    if window.window_id == current_window_id then
+      current_session = window.session_name
+      break
+    end
+  end
+
+  if current_session == "" then return windows end
+
+  local filtered = {} ---@type stuff.util.kitty.KittyWindow[]
+  for _, window in ipairs(windows) do
+    if window.session_name == current_session then
+      filtered[#filtered + 1] = window
+    end
+  end
+
+  return filtered
+end
+
 ---@return StuffPromptAgentTarget[]
 local function find_kitty_agent_targets()
   local kitty = require("stuff.util.kitty")
-  local windows = kitty.get_windows()
+  local windows = filter_windows_by_current_session(kitty.get_windows())
   return collect_kitty_agent_targets(windows, function(window_id)
     return kitty.get_window_preview(window_id)
   end)
