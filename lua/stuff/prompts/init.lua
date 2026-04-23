@@ -61,7 +61,12 @@ local function send_text_to_target(target, prompt)
   end
 
   vim.notify(
-    string.format("Pasted prompt to %s in %s target %s", target.agent, target.backend, target.id)
+    string.format(
+      "  Pasted prompt to %s in %s target %s",
+      target.agent,
+      target.backend,
+      target.id
+    )
   )
   return true
 end
