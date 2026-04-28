@@ -353,6 +353,23 @@ local function open_prompt(file_path)
     desc = "Send prompt to AI agent",
   })
 
+  vim.keymap.set(
+    "i",
+    "@",
+    function()
+      vim.schedule(function()
+        Snacks.picker.files({
+          confirm = { action = "put", field = "file" },
+        })
+      end)
+      return "@"
+    end,
+    {
+      buffer = current_prompt_buf,
+      expr = true,
+    }
+  )
+
   return win
 end
 
