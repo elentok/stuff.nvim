@@ -1,6 +1,21 @@
 ---@class NotesOptions
 ---@field root_dir? string
 
+local function wrap_visual_selection_in_codeblock()
+  local range = require("stuff.util.visual").get_visual_range()
+  local lines = vim.api.nvim_buf_get_lines(0, range.start_line - 1, range.end_line, false)
+
+  vim.ui.input({ prompt = "Codeblock filetype: " }, function(filetype)
+    if filetype == nil then return end
+
+    vim.api.nvim_buf_set_lines(0, range.start_line - 1, range.end_line, false, {
+      "```" .. filetype,
+      unpack(lines),
+      "```",
+    })
+  end)
+end
+
 ---params opts? NotesOptions
 local function setup(opts)
   ---@type NotesOptions
@@ -53,6 +68,13 @@ local function setup(opts)
     "<leader>id",
     function() require("stuff.notes.daily").insert_date_header() end,
     { desc = "Insert date header" }
+  )
+
+  vim.keymap.set(
+    "x",
+    "<leader>cb",
+    wrap_visual_selection_in_codeblock,
+    { desc = "Wrap visual selection in codeblock" }
   )
 end
 
