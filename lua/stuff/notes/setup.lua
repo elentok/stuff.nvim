@@ -1,19 +1,31 @@
 ---@class NotesOptions
 ---@field root_dir? string
 
-local function wrap_visual_selection_in_codeblock()
-  local range = require("stuff.util.visual").get_visual_range()
-  local lines = vim.api.nvim_buf_get_lines(0, range.start_line - 1, range.end_line, false)
+---@param start_line number
+---@param end_line number
+local function wrap_range_in_codeblock(start_line, end_line)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, end_line, false)
 
   vim.ui.input({ prompt = "Codeblock filetype: " }, function(filetype)
     if filetype == nil then return end
 
-    vim.api.nvim_buf_set_lines(0, range.start_line - 1, range.end_line, false, {
-      "```" .. filetype,
-      unpack(lines),
-      "```",
-    })
+    local replacement = { "```" .. filetype }
+    vim.list_extend(replacement, lines)
+    table.insert(replacement, "```")
+
+    vim.api.nvim_buf_set_lines(bufnr, start_line, end_line, false, replacement)
   end)
+end
+
+local function wrap_visual_selection_in_codeblock()
+  local range = require("stuff.util.visual").get_visual_range()
+  wrap_range_in_codeblock(range.start_line - 1, range.end_line)
+end
+
+local function wrap_current_line_in_codeblock()
+  local line = vim.api.nvim_win_get_cursor(0)[1] - 1
+  wrap_range_in_codeblock(line, line + 1)
 end
 
 ---params opts? NotesOptions
@@ -68,6 +80,13 @@ local function setup(opts)
     "<leader>id",
     function() require("stuff.notes.daily").insert_date_header() end,
     { desc = "Insert date header" }
+  )
+
+  vim.keymap.set(
+    "n",
+    "<leader>cb",
+    wrap_current_line_in_codeblock,
+    { desc = "Wrap current line in codeblock" }
   )
 
   vim.keymap.set(

@@ -1,5 +1,6 @@
 local util = require("stuff.util")
 local path = require("stuff.util.path")
+local visual = require("stuff.util.visual")
 
 describe("util", function()
   describe("merge_config", function()
@@ -55,6 +56,22 @@ describe("util", function()
 
     it("handles deeply nested paths", function()
       assert.equals("c/d.lua", path.relative_path("/a/b", "/a/b/c/d.lua"))
+    end)
+  end)
+
+  describe("visual.get_visual_range", function()
+    it("uses visual marks outside active visual mode", function()
+      vim.fn.setpos("'<", { 0, 2, 1, 0 })
+      vim.fn.setpos("'>", { 0, 4, 1, 0 })
+
+      assert.same({ start_line = 2, end_line = 4 }, visual.get_visual_range())
+    end)
+
+    it("normalizes reversed selections", function()
+      vim.fn.setpos("'<", { 0, 5, 1, 0 })
+      vim.fn.setpos("'>", { 0, 3, 1, 0 })
+
+      assert.same({ start_line = 3, end_line = 5 }, visual.get_visual_range())
     end)
   end)
 end)

@@ -4,8 +4,18 @@
 
 ---@return LineRange
 local function get_visual_range()
-  local start_line = vim.fn.line("v")
-  local end_line = vim.fn.line(".")
+  local mode = vim.fn.mode(1)
+  local start_line
+  local end_line
+
+  if mode:match("^[vV\22]") then
+    start_line = vim.fn.getpos("v")[2]
+    end_line = vim.fn.getpos(".")[2]
+  else
+    start_line = vim.fn.getpos("'<")[2]
+    end_line = vim.fn.getpos("'>")[2]
+  end
+
   if start_line > end_line then
     start_line, end_line = end_line, start_line
   end
