@@ -10,12 +10,15 @@ local function setup()
         { desc = "Organize imports", buffer = args.buf }
       )
 
-      map(
-        "n",
-        "<space>th",
-        function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled()) end,
-        { desc = "Toggle inline hints", buffer = args.buf }
-      )
+      map("n", "<space>th", function()
+        if vim.lsp.inlay_hint.is_enabled() then
+          vim.notify("Inlay hints: disabled")
+          vim.lsp.inlay_hint.enable(false)
+        else
+          vim.notify("Inlay hints: enabled")
+          vim.lsp.inlay_hint.enable()
+        end
+      end, { desc = "Toggle inline hints", buffer = args.buf })
 
       map(
         "n",
