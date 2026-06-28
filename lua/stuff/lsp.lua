@@ -20,13 +20,6 @@ local function setup()
         end
       end, { desc = "Toggle inline hints", buffer = args.buf })
 
-      map(
-        "n",
-        "gd",
-        function() Snacks.picker.lsp_definitions() end,
-        { desc = "Go to definition", buffer = args.buf }
-      )
-
       -- vim.keymap.del("n", "K")
       map(
         "n",
