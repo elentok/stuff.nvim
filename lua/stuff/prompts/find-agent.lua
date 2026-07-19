@@ -4,7 +4,7 @@ local AGENT_NAMES = { "claude", "codex", "opencode", "cursor-agent" }
 
 ---@class StuffPromptAgentTarget
 ---@field agent string
----@field backend "tmux"|"kitty"
+---@field backend "tmux"|"kitty"|"herdr"
 ---@field id string
 ---@field scope_id string
 ---@field scope_active boolean
@@ -222,10 +222,63 @@ local function find_kitty_agent_targets()
   end)
 end
 
----@param backend "tmux"|"kitty"
+---@param agent HerdrAgent
+---@return StuffPromptAgentTarget
+local function to_herdr_target(agent)
+  local herdr = require("stuff.util.herdr")
+  local preview_text = sanitize_preview_text(herdr.get_agent_preview(agent.pane_id))
+  return {
+    agent = agent.agent,
+    backend = "herdr",
+    id = agent.pane_id,
+    scope_id = agent.tab_id,
+    scope_active = agent.focused,
+    title = agent.terminal_title,
+    current_command = "",
+    start_command = "",
+    current_path = agent.cwd,
+    active = agent.focused,
+    preview_text = preview_text,
+    text = table.concat({
+      agent.agent,
+      agent.pane_id,
+      agent.terminal_title,
+      agent.cwd,
+      preview_text,
+    }, " "),
+  }
+end
+
+---@return StuffPromptAgentTarget[]
+local function find_herdr_agent_targets()
+  local herdr = require("stuff.util.herdr")
+  local agents = herdr.list_agents()
+  if #agents == 0 then return {} end
+
+  local current_tab_id = herdr.get_current_tab_id()
+  if current_tab_id ~= nil then
+    local tab_agents = vim.tbl_filter(
+      function(agent) return agent.tab_id == current_tab_id end,
+      agents
+    )
+    if #tab_agents > 0 then return vim.tbl_map(to_herdr_target, tab_agents) end
+  end
+
+  local current_workspace_id = herdr.get_current_workspace_id()
+  if current_workspace_id == nil then return {} end
+
+  local workspace_agents = vim.tbl_filter(
+    function(agent) return agent.workspace_id == current_workspace_id end,
+    agents
+  )
+  return vim.tbl_map(to_herdr_target, workspace_agents)
+end
+
+---@param backend "tmux"|"kitty"|"herdr"
 ---@return StuffPromptAgentTarget[]
 function M.find(backend)
   if backend == "tmux" then return find_tmux_agent_targets() end
+  if backend == "herdr" then return find_herdr_agent_targets() end
   return find_kitty_agent_targets()
 end
 

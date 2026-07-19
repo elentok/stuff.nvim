@@ -24,8 +24,9 @@ local function get_prompt_with_context(prompt, context)
   return table.concat({ context, "", prompt }, "\n")
 end
 
----@return "tmux"|"kitty"|nil
+---@return "tmux"|"kitty"|"herdr"|nil
 local function get_terminal_backend()
+  if require("stuff.util.herdr").is_inside_herdr() then return "herdr" end
   if require("stuff.util.tmux").is_inside_tmux() then return "tmux" end
   if require("stuff.util.kitty").is_inside_kitty() then return "kitty" end
   return nil
@@ -46,6 +47,10 @@ local function send_text_to_target(target, prompt)
     local tmux = require("stuff.util.tmux")
     ok = tmux.send_to_pane(target.id, prompt)
     focused = tmux.focus_pane(target.id)
+  elseif target.backend == "herdr" then
+    local herdr = require("stuff.util.herdr")
+    ok = herdr.send_to_agent(target.id, prompt)
+    focused = herdr.focus_agent(target.id)
   else
     local kitty = require("stuff.util.kitty")
     ok = kitty.send_to_window(target.id, prompt)
@@ -136,16 +141,20 @@ end
 local function send_to_agent_terminal(text)
   local backend = get_terminal_backend()
   if backend == nil then
-    vim.notify("Only tmux and kitty are supported", vim.log.levels.WARN)
+    vim.notify("Only tmux, kitty and herdr are supported", vim.log.levels.WARN)
     return
   end
 
   local targets = find_agent.find(backend)
   if #targets == 0 then
-    vim.notify(
-      string.format("No AI agent targets found in the current %s session", backend),
-      vim.log.levels.WARN
-    )
+    if backend == "herdr" then
+      vim.notify("No AI agent found in the current herdr workspace", vim.log.levels.WARN)
+    else
+      vim.notify(
+        string.format("No AI agent targets found in the current %s session", backend),
+        vim.log.levels.WARN
+      )
+    end
     return
   end
 
