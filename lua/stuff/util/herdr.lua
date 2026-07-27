@@ -111,6 +111,32 @@ local function send_to_agent(pane_id, text)
   return true
 end
 
+---@param command string[]
+local function new_tab(command)
+  if not is_inside_herdr() then vim.notify("Not inside herdr", vim.log.levels.ERROR) end
+
+  local create_result =
+    run({ "tab", "create", "--cwd", vim.uv.cwd(), "--focus" }, { fail_silently = true })
+  if create_result.code ~= 0 or create_result.stdout == nil or create_result.stdout == "" then
+    vim.notify("Failed to create herdr tab", vim.log.levels.ERROR)
+    return
+  end
+
+  local ok, decoded = pcall(vim.json.decode, create_result.stdout)
+  if not ok or type(decoded) ~= "table" then
+    vim.notify("Failed to parse herdr tab create response", vim.log.levels.ERROR)
+    return
+  end
+
+  local pane_id = vim.tbl_get(decoded, "result", "root_pane", "pane_id")
+  if type(pane_id) ~= "string" or pane_id == "" then
+    vim.notify("Failed to get pane id for new herdr tab", vim.log.levels.ERROR)
+    return
+  end
+
+  run(vim.list_extend({ "pane", "run", pane_id }, command), { fail_silently = true })
+end
+
 return {
   run = run,
   is_inside_herdr = is_inside_herdr,
@@ -120,4 +146,5 @@ return {
   get_agent_preview = get_agent_preview,
   focus_agent = focus_agent,
   send_to_agent = send_to_agent,
+  new_tab = new_tab,
 }
