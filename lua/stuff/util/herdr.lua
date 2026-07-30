@@ -102,7 +102,7 @@ local function send_to_agent(pane_id, text)
     return false
   end
 
-  local result = run({ "agent", "send", pane_id, text }, { fail_silently = true })
+  local result = run({ "agent", "prompt", pane_id, text }, { fail_silently = true })
   if result.code ~= 0 then
     vim.notify("Failed to send text to herdr agent " .. pane_id, vim.log.levels.ERROR)
     return false
