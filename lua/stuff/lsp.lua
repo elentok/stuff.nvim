@@ -37,7 +37,7 @@ local function setup()
 
   vim.api.nvim_create_user_command(
     "LspLog",
-    function() vim.cmd("tabe " .. vim.lsp.get_log_path()) end,
+    function() vim.cmd("tabe " .. vim.lsp.log.get_filename()) end,
     {}
   )
 end
