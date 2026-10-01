@@ -4,8 +4,6 @@ local function extendVimUiOpen()
     local expand = require("stuff.open-link.expand")
     return originalOpen(expand(path))
   end
-
-  vim.keymap.set("n", "gx", "<cmd>OpenLink<cr>")
 end
 
 return extendVimUiOpen
